@@ -1,2 +1,2 @@
-# MiSTer_BubSys-ROM_core
+# MiSTer_BubSysROM_core
 Bubble System ROM core for MiSTer FPGA
