@@ -16,8 +16,8 @@ module K005290
     input   wire            i_ABS_2H,
 
     //flips
-    input   wire            i_A_FLIP,
-    input   wire            i_B_FLIP,
+    input   wire            i_AFF,
+    input   wire            i_BFF,
 
     //sr mode
     input   wire    [1:0]   i_A_MODE,
@@ -142,7 +142,7 @@ begin
         case(i_A_MODE)
             2'b00: begin end
             2'b01: begin
-                if(i_A_FLIP == 1'b0) begin
+                if(i_AFF == 1'b0) begin
                     A_PIXEL_DELAY1 <= 4'h0; //displays black only
                 end
                 else begin                  //shift reversed direction(right)
@@ -159,7 +159,7 @@ begin
                 end
             end
             2'b10: begin
-                if(i_A_FLIP == 1'b0) begin //shift normally
+                if(i_AFF == 1'b0) begin //shift normally
                     A_PIXEL_DELAY1 <= A_PIXEL0;
 
                     A_PIXEL0 <= A_PIXEL1;
@@ -223,7 +223,7 @@ begin
         case(i_B_MODE)
             2'b00: begin end
             2'b01: begin
-                if(i_B_FLIP == 1'b0) begin
+                if(i_BFF == 1'b0) begin
                     o_B_PIXEL <= 4'h0;      //displays black only
                 end
                 else begin                  //shift reversed direction(right)
@@ -240,7 +240,7 @@ begin
                 end
             end
             2'b10: begin
-                if(i_B_FLIP == 1'b0) begin //shift normally
+                if(i_BFF == 1'b0) begin //shift normally
                     o_B_PIXEL <= B_PIXEL0;
 
                     B_PIXEL0 <= B_PIXEL1;

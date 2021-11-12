@@ -24,6 +24,8 @@ module K005293
     //pixel input
     input   wire    [3:0]   i_A_PIXEL,
     input   wire    [3:0]   i_B_PIXEL,
+    //sprite pixels
+    input   wire    [15:0]  i_OBJBUF_DATA,
 
     //pixel transparent flag
     input   wire            i_A_TRN_n,
@@ -33,9 +35,6 @@ module K005293
     input   wire            i_VHFF,
     input   wire    [6:0]   i_VC,
     input   wire    [3:0]   i_PR,
-
-    //sprite pixels
-    input   wire    [15:0]  i_OBJBUF_DATA,
 
     //delayed flips
     output  wire            o_A_FLIP,
@@ -132,7 +131,7 @@ reg     [9:0]   B_PROPERTY_DELAY1;
 reg     [9:0]   B_PROPERTY_DELAY2;
 reg     [9:0]   B_PROPERTY_DELAY3;
 
-wire    [2:0]   b_pr = B_PROPERTY_DELAY3[9:8];
+wire    [1:0]   b_pr = B_PROPERTY_DELAY3[9:8];
 wire    [6:0]   b_palette = B_PROPERTY_DELAY3[6:0];
 assign  o_B_FLIP = B_PROPERTY_DELAY3[7];
 
@@ -265,42 +264,40 @@ localparam OBJ = 2'b10;
 //X-decoder
 always @(*)
 begin
-	casez({b_pr, a_pr}) //PR2, PR1, PR4, PR3, PR2, PR1
-                        //|--TMB--| |------TMA-------|
-		6'b??_0101: priority_mode = `PRCASE_A;        // A
-		6'b?1_1101: priority_mode = `PRCASE_A_B;      // A over B
-		6'b?1_1111: priority_mode = `PRCASE_A_B_O;    // A over B over Object
-		6'b00_1101: priority_mode = `PRCASE_A_BMO;    // A over (B-masked Object)
-		6'b??_0111: priority_mode = `PRCASE_A_O1;     // A over Object 1
-		6'b00_1111: priority_mode = `PRCASE_A_O2;     // A over Object 2
-		6'b10_1111: priority_mode = `PRCASE_A_O_B;    // A over Object over B
-		6'b01_00??: priority_mode = `PRCASE_B;        // B
-		6'b01_10?1: priority_mode = `PRCASE_B_A;      // B over A
-		6'b11_10?1: priority_mode = `PRCASE_B_A_O;    // B over A over Object
-		6'b11_00??: priority_mode = `PRCASE_B_O;      // B over Object
-		6'b11_1000: priority_mode = `PRCASE_B_O;      // |
-		6'b11_1010: priority_mode = `PRCASE_B_O_A;    // B over Object over A
-		6'b00_00??: priority_mode = `PRCASE_O;        // Object
-		6'b00_1?00: priority_mode = `PRCASE_O;        // |
-		6'b??_0100: priority_mode = `PRCASE_O;        // |
-		6'b??_0110: priority_mode = `PRCASE_O_A;      // Object over A
-		6'b00_1110: priority_mode = `PRCASE_O_A;      // |
-		6'b10_1110: priority_mode = `PRCASE_O_A_B;    // Object over A over B
-		6'b10_00??: priority_mode = `PRCASE_O_B;      // Object over B
-		6'b10_1000: priority_mode = `PRCASE_O_B;      // |
-		6'b10_1010: priority_mode = `PRCASE_O_B_A;    // Object over B over A
-		6'b10_1101: priority_mode = `PRCASE_A_BMO_B;  // A over (B-masked Object) over B
-		6'b?1_1100: priority_mode = `PRCASE_APB_O;    // (A-punched B) over Object
-		6'b?1_1110: priority_mode = `PRCASE_APB_O_A;  // (A-punched B) over Object over A
-		6'b01_1000: priority_mode = `PRCASE_B_AMO;    // B over (A-masked Object)
-		6'b01_1010: priority_mode = `PRCASE_B_AMO_A;  // B over (A-masked Object) over A
-		6'b00_10?1: priority_mode = `PRCASE_BPA_O;    // (B-punched A) over Object
-		6'b10_10?1: priority_mode = `PRCASE_BPA_O_B;  // (B-punched A) over Object over B
-		6'b10_1100: priority_mode = `PRCASE_O_APB;    // Object over (A-punched B)
-		6'b00_1010: priority_mode = `PRCASE_O_BPA;    // Object over (B-punched A)
-
-        default: priority_mode = `PRCASE_A;
-	endcase
+    casez({b_pr, a_pr}) //PR2, PR1, PR4, PR3, PR2, PR1
+                       //|--TMB--| |------TMA-------|
+        6'b??_0101: priority_mode <= `PRCASE_A;        // A
+        6'b?1_1101: priority_mode <= `PRCASE_A_B;      // A over B
+        6'b?1_1111: priority_mode <= `PRCASE_A_B_O;    // A over B over Object
+        6'b00_1101: priority_mode <= `PRCASE_A_BMO;    // A over (B-masked Object)
+        6'b??_0111: priority_mode <= `PRCASE_A_O1;     // A over Object 1
+        6'b00_1111: priority_mode <= `PRCASE_A_O2;     // A over Object 2
+        6'b10_1111: priority_mode <= `PRCASE_A_O_B;    // A over Object over B
+        6'b01_00??: priority_mode <= `PRCASE_B;        // B
+        6'b01_10?1: priority_mode <= `PRCASE_B_A;      // B over A
+        6'b11_10?1: priority_mode <= `PRCASE_B_A_O;    // B over A over Object
+        6'b11_00??: priority_mode <= `PRCASE_B_O;      // B over Object
+        6'b11_1000: priority_mode <= `PRCASE_B_O;      // |
+        6'b11_1010: priority_mode <= `PRCASE_B_O_A;    // B over Object over A
+        6'b00_00??: priority_mode <= `PRCASE_O;        // Object
+        6'b00_1?00: priority_mode <= `PRCASE_O;        // |
+        6'b??_0100: priority_mode <= `PRCASE_O;        // |
+        6'b??_0110: priority_mode <= `PRCASE_O_A;      // Object over A
+        6'b00_1110: priority_mode <= `PRCASE_O_A;      // |
+        6'b10_1110: priority_mode <= `PRCASE_O_A_B;    // Object over A over B
+        6'b10_00??: priority_mode <= `PRCASE_O_B;      // Object over B
+        6'b10_1000: priority_mode <= `PRCASE_O_B;      // |
+        6'b10_1010: priority_mode <= `PRCASE_O_B_A;    // Object over B over A
+        6'b10_1101: priority_mode <= `PRCASE_A_BMO_B;  // A over (B-masked Object) over B
+        6'b?1_1100: priority_mode <= `PRCASE_APB_O;    // (A-punched B) over Object
+        6'b?1_1110: priority_mode <= `PRCASE_APB_O_A;  // (A-punched B) over Object over A
+        6'b01_1000: priority_mode <= `PRCASE_B_AMO;    // B over (A-masked Object)
+        6'b01_1010: priority_mode <= `PRCASE_B_AMO_A;  // B over (A-masked Object) over A
+        6'b00_10?1: priority_mode <= `PRCASE_BPA_O;    // (B-punched A) over Object
+        6'b10_10?1: priority_mode <= `PRCASE_BPA_O_B;  // (B-punched A) over Object over B
+        6'b10_1100: priority_mode <= `PRCASE_O_APB;    // Object over (A-punched B)
+        6'b00_1010: priority_mode <= `PRCASE_O_BPA;    // Object over (B-punched A)
+    endcase
 end
 
 //Y and Z-decoder
