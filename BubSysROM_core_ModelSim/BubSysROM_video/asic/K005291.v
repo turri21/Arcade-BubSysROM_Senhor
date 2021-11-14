@@ -35,7 +35,7 @@ module K005291
     input   wire            i_VCLK,
 
     //CPU address/GFX data bus
-    input   wire    [11:0]  i_CPUADDR,
+    input   wire    [11:0]  i_CPU_ADDR,
     input   wire    [7:0]   i_GFXDATA,
 
     //to CHARRAM
@@ -149,7 +149,7 @@ assign  vertical_tile_addr = TMAB_VSCROLL_VALUE + {FLIP_128V, FLIP_64V, FLIP_32V
 ////
 
 assign  o_VRAMADDR =    (ABS_2H == 1'b0) ?
-                            i_CPUADDR :
+                            i_CPU_ADDR :
                             {ABS_4H, vertical_tile_addr[7:3], horizontal_tile_addr};
 
 

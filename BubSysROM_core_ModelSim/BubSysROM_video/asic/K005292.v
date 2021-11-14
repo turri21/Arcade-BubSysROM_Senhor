@@ -92,7 +92,7 @@ assign  {
         } = horizontal_counter[7:0] ^ {8{i_HFLIP}};
 assign  o_HBLANK_n = horizontal_counter[8];
 
-reg     [8:0]   vertical_counter = 8'd248;
+reg     [8:0]   vertical_counter = 9'd248;
 assign  {
             o_ABS_128V, 
             o_ABS_64V, 
@@ -102,7 +102,7 @@ assign  {
             o_ABS_4V,  
             o_ABS_2V,
             o_ABS_1V
-        } = vertical_counter;
+        } = vertical_counter[7:0];
 
 assign  {
             o_FLIP_128V, 
@@ -113,15 +113,14 @@ assign  {
             o_FLIP_4V,  
             o_FLIP_2V,
             o_FLIP_1V
-        } = vertical_counter ^ {8{i_VFLIP}};
-assign o_VSYNC_n = vertical_counter[8];
+        } = vertical_counter[7:0] ^ {8{i_VFLIP}};
 
 always @(posedge i_EMU_MCLK or negedge i_MRST_n)
 begin
     if(!i_MRST_n) //asynchronous reset
     begin
         horizontal_counter <= 9'd128;
-        vertical_counter <= 8'd248;
+        vertical_counter <= 9'd248;
 
         o_VBLANK_n <= 1'b0;
         o_VBLANKH_n <= 1'b0;
@@ -139,7 +138,7 @@ begin
                     if(vertical_counter < 9'd511)
                     begin
                         //VBLANK
-                        if(vertical_counter > 9'd495 || vertical_counter < 9'd271)
+                        if(vertical_counter > 9'd494 || vertical_counter < 9'd271)
                         begin
                             o_VBLANK_n <= 1'b0;
                         end

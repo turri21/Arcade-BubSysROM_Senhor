@@ -2,7 +2,7 @@
     TC5533P SRAM
 */
 
-module SRAM4k8
+module SRAM4k8_vram1_low
 (
     input   wire            i_MCLK,
 	input   wire    [11:0]  i_ADDR,
@@ -28,6 +28,11 @@ begin
     begin
         o_DOUT <= RAM4k8[i_ADDR];
     end
+end
+
+initial
+begin
+    $readmemh("vram1_low.txt", RAM4k8);
 end
 
 endmodule

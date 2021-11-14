@@ -8,9 +8,9 @@ module BubSysROM_video
     output  wire            o_EMU_CLK6MPCEN_n, //REF_CLK6M
     output  wire            o_EMU_CLK6MNCEN_n,
 
-    input   wire    [15:0]  i_CPU_ADDR,
-    input   wire    [16:0]  i_CPU_DIN,
-    output  wire    [16:0]  o_CPU_DOUT,
+    input   wire    [14:0]  i_CPU_ADDR,
+    input   wire    [15:0]  i_CPU_DIN,
+    output  reg     [15:0]  o_CPU_DOUT,
     input   wire            i_CPU_RW,
     input   wire            i_CPU_UDS_n,
     input   wire            i_CPU_LDS_n,
@@ -116,12 +116,12 @@ wire            __REF_CLK6M = cen_register[1];
 
 wire            HBLANK_n;
 wire            VBLANK_n;
+assign          o_VBLANK_n = VBLANK_n;
 wire            VBLANKH_n;
 
 wire            ABS_256H;
 wire            ABS_n256H = ~ABS_256H;
 wire            ABS_128H;
-wire            ABS_128HA = (ABS_256H & ABS_128H) | (~ABS_256H & ABS_32H);
 wire            ABS_64H;
 wire            ABS_32H;
 wire            ABS_16H;
@@ -129,6 +129,7 @@ wire            ABS_8H;
 wire            ABS_4H;
 wire            ABS_2H;
 wire            ABS_1H;
+wire            ABS_128HA = (ABS_256H & ABS_128H) | (~ABS_256H & ABS_32H);
 
 wire            ABS_128V;
 wire            ABS_64V;
@@ -160,18 +161,13 @@ wire            FLIP_1V;
 
 wire            VCLK;
 
-wire            HBLANK_n;
-wire            VBLANK_n;
-assign          o_VBLANK_n = VBLANK_n;
-wire            VBLANKH_n;
-
 //declare K005292 core: this core does not have LS393 sprite code up counter
 K005292 K005292_main
 (
     .i_EMU_MCLK                 (i_EMU_MCLK                 ),
     .i_EMU_CLK6MPCEN_n          (o_EMU_CLK6MPCEN_n          ),
 
-    .i_MRST_n                   (                           ),
+    .i_MRST_n                   (1'b1                       ),
 
     .i_HFLIP                    (i_HFLIP                    ),
     .i_VFLIP                    (i_VFLIP                    ),
@@ -438,14 +434,14 @@ assign  scrollval_addr =    (~VCLK == 1'b0) ?
 wire    [10:0]  scrollram_addr;
 assign  scrollram_addr =    (~ABS_1H == 1'b0) ?
                                 scrollval_addr :
-                                i_CPU_ADDR;
+                                i_CPU_ADDR[10:0];
 
 //make scrollram wr signal
 wire            scrollram_wr = (i_VZCS_n | i_CPU_RW | i_CPU_LDS_n | TIME2);
 
 //declare SCROLLRAM
 wire    [7:0]   scrollram_dout;
-SRAM2k8 SCROLLRAM_LOW
+SRAM2k8_scroll SCROLLRAM_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (scrollram_addr             ),
@@ -456,13 +452,13 @@ SRAM2k8 SCROLLRAM_LOW
 );
 
 //declare CPU side latch
-wire    [7:0]   scrollram_cpulatch_q;
+wire    [7:0]   scrollram_readlatch_q;
 LOGIC373 SCROLLRAM_CPULATCH
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_D                        (scrollram_dout             ),
     .o_Q                        (scrollram_readlatch_q      ),
-    .i_LE_n                     (TIME1                      )
+    .i_LE                       (TIME1                      )
 );
 
 
@@ -508,7 +504,7 @@ K005291 K005291_main
     
     .i_VCLK                     (VCLK                       ),
 
-    .i_CPUADDR                  (i_CPUADDR[11:0]            ),
+    .i_CPU_ADDR                 (i_CPU_ADDR[11:0]           ),
     .i_GFXDATA                  (scrollram_dout             ),
 
     .o_TILELINEADDR             (line_addr                  ),
@@ -553,7 +549,7 @@ wire            vram2l_wr = (i_VCS2_n | i_CPU_RW | i_CPU_LDS_n | ABS_1H | ABS_2H
 
 //declare vram1
 wire    [15:0]  vram1_dout;
-SRAM4k8 VRAM1_HIGH
+SRAM4k8_vram1_high VRAM1_HIGH
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
@@ -563,7 +559,7 @@ SRAM4k8 VRAM1_HIGH
     .i_RD_n                     (VRTIME                     )
 );
 
-SRAM4k8 VRAM1_LOW
+SRAM4k8_vram1_low VRAM1_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
@@ -575,7 +571,7 @@ SRAM4k8 VRAM1_LOW
 
 //declare vram2
 wire    [7:0]   vram2_dout;
-SRAM4k8 VRAM2_LOW
+SRAM4k8_vram2 VRAM2_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
@@ -618,7 +614,8 @@ wire    [3:0]   PR = vram1_dout[15:12];
 //  tile address
 //
 
-wire    [8:0]   VCA;
+wire    [7:0]   VCA;
+wire    [13:0]  __REF_VCA_ORIGINAL = {tile_code, line_addr ^ {3{VVFF}}};
 assign  VCA =   (CHAMPX == 1'b0) ?
                     {   //CAS
                         1'b1,
@@ -644,7 +641,7 @@ assign  VCA =   (CHAMPX == 1'b0) ?
 
 
 
-
+wire    [7:0]   objram_readlatch_q;
 
 
 
@@ -685,24 +682,24 @@ assign  cpu_addr =  (i_CHACS_n == 1'b1) ?
                         refresh_addr :
                         (CHAMPX == 1'b0) ?
                             {   //CAS
-                                1'b1,          //HIGH
-                                i_CPUADDR[14], //A15
-                                i_CPUADDR[13], //A14
-                                i_CPUADDR[12], //A13
-                                i_CPUADDR[11], //A12
-                                i_CPUADDR[10], //A11
-                                i_CPUADDR[9],  //A10
-                                1'b1           //HIGH
+                                1'b1,           //HIGH
+                                i_CPU_ADDR[14], //A15
+                                i_CPU_ADDR[13], //A14
+                                i_CPU_ADDR[12], //A13
+                                i_CPU_ADDR[11], //A12
+                                i_CPU_ADDR[10], //A11
+                                i_CPU_ADDR[9],  //A10
+                                1'b1            //HIGH
                             } :
                             {   //RAS
-                                i_CPUADDR[8], //A9
-                                i_CPUADDR[7], //A8
-                                i_CPUADDR[6], //A7
-                                i_CPUADDR[5], //A6
-                                i_CPUADDR[4], //A5
-                                i_CPUADDR[3], //A4
-                                i_CPUADDR[2], //A3
-                                i_CPUADDR[1]  //A2
+                                i_CPU_ADDR[8], //A9
+                                i_CPU_ADDR[7], //A8
+                                i_CPU_ADDR[6], //A7
+                                i_CPU_ADDR[5], //A6
+                                i_CPU_ADDR[4], //A5
+                                i_CPU_ADDR[3], //A4
+                                i_CPU_ADDR[2], //A3
+                                i_CPU_ADDR[1]  //A2
                             };
 
 //LS157*2 11A/B MUX
@@ -722,7 +719,7 @@ assign  charram_addr =  (~ABS_2H == 1'b0) ? cpu_addr : gfx_addr;
 //RAS/CAS
 wire            charram_ras_n = ~CHAMPX;
 reg             charram_cas_n = 1'b1; //54.25ns delayed RAS
-always @(i_EMU_MCLK)
+always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK18MNCEN_n)
     begin
@@ -733,9 +730,9 @@ end
 //WR/RD
 reg             charramu_en; //upper
 reg             charraml_en; //upper
-always @(i_EMU_MCLK)
+always @(posedge i_EMU_MCLK)
 begin
-    if(i_EMU_CLK6MNCEN_n) //negedge of 6M, every even pixel
+    if(!o_EMU_CLK6MNCEN_n) //negedge of 6M, every even pixel
     begin
         if(ABS_1H == 1'b0) //posedge of every even pixel
         begin
@@ -869,12 +866,10 @@ wire            A_FLIP; //from 005293
 wire            B_FLIP;
 
 wire            AFF = i_HFLIP ^ A_FLIP;
-wire            BFF = i_HFLIP ^ A_FLIP;
+wire            BFF = i_HFLIP ^ B_FLIP;
 
-wire            A_MODE[1] = ~SHIFTA1 | ~AFF;
-wire            A_MODE[0] = ~SHIFTA1 | AFF;
-wire            B_MODE[1] = ~SHIFTB | ~BFF;
-wire            B_MODE[0] = ~SHIFTB | BFF;
+wire    [1:0]   A_MODE = {(~SHIFTA1 | ~AFF), (~SHIFTA1 | AFF)};
+wire    [1:0]   B_MODE = {(~SHIFTB | ~BFF), (~SHIFTB | BFF)};
 
 
 //
@@ -891,21 +886,21 @@ K005290 K005290_main
     .i_EMU_MCLK                 (i_EMU_MCLK                 ),
     .i_EMU_CLK6MPCEN_n          (o_EMU_CLK6MPCEN_n          ),
 
-    .i_GFXDATA,                 ({charram1_dout, charram2_dout}),
+    .i_GFXDATA                  ({charram1_dout, charram2_dout}),
                             
-    .i_ABS_n4H,                 (~ABS_4H                    ),
-    .i_ABS_2H,                  (~ABS_2H                    ),
+    .i_ABS_n4H                  (~ABS_4H                    ),
+    .i_ABS_2H                   (~ABS_2H                    ),
                             
-    .i_AFF,                     (AFF                        ),
-    .i_BFF,                     (BFF                        ),
+    .i_AFF                      (AFF                        ),
+    .i_BFF                      (BFF                        ),
                             
-    .i_A_MODE,                  (A_MODE                     ),
-    .i_B_MODE,                  (A_MODE                     ),
+    .i_A_MODE                   (A_MODE                     ),
+    .i_B_MODE                   (B_MODE                     ),
                             
-    .o_A_PIXEL,                 (A_PIXEL                    ),
-    .o_B_PIXEL,                 (B_PIXEL                    ),
+    .o_A_PIXEL                  (A_PIXEL                    ),
+    .o_B_PIXEL                  (B_PIXEL                    ),
                             
-    .o_A_TRN_n,                 (A_TRN_n                    ),
+    .o_A_TRN_n                  (A_TRN_n                    ),
     .o_B_TRN_n                  (B_TRN_n                    )
 );    
 
@@ -922,41 +917,42 @@ K005290 K005290_main
 
 wire            SHIFTA1_CLKD = SHIFTA1 | __REF_CLK6M;
 wire            SHIFTA2_CLKD = SHIFTA2 | __REF_CLK6M;
-wire            SHIFTB_CLKD = SHIFTAB | __REF_CLK6M;
+wire            SHIFTB_CLKD = SHIFTB | __REF_CLK6M;
 
+wire            ABS_n1H = ~ABS_1H;
 wire            ABS_n6n7H = ~(ABS_4H & ABS_2H);
 wire            ABS_n2n3H = ~(~ABS_4H & ABS_2H);
 
 K005293 K005293_main
 (
-    i_EMU_MCLK                  (i_EMU_MCLK                 ),
-    i_EMU_CLK6MPCEN_n           (o_EMU_CLK6MPCEN_n          ),
+    .i_EMU_MCLK                 (i_EMU_MCLK                 ),
+    .i_EMU_CLK6MPCEN_n          (o_EMU_CLK6MPCEN_n          ),
 
-    i_HFLIP                     (i_HFLIP                    ),
+    .i_HFLIP                    (i_HFLIP                    ),
 
-    i_SHIFTA1                   (SHIFTA1_CLKD               ),
-    i_SHIFTA2                   (SHIFTA2_CLKD               ),
-    i_SHIFTB                    (SHIFTB_CLKD                ),
+    .i_SHIFTA1                  (SHIFTA1_CLKD               ),
+    .i_SHIFTA2                  (SHIFTA2_CLKD               ),
+    .i_SHIFTB                   (SHIFTB_CLKD                ),
 
-    i_ABS_n1H                   (~ABS_n1H                   ),
-    i_ABS_n6n7H                 (ABS_n6n7H                  ),
-    i_ABS_n2n3H                 (ABS_n2n3H                  ),
+    .i_ABS_n1H                  (ABS_n1H                    ),
+    .i_ABS_n6n7H                (ABS_n6n7H                  ),
+    .i_ABS_n2n3H                (ABS_n2n3H                  ),
 
-    i_A_PIXEL                   (A_PIXEL                    ),
-    i_B_PIXEL                   (B_PIXEL                    ),
-    i_OBJBUF_DATA               (                           ),
+    .i_A_PIXEL                  (A_PIXEL                    ),
+    .i_B_PIXEL                  (B_PIXEL                    ),
+    .i_OBJBUF_DATA              (                           ),
 
-    i_A_TRN_n                   (A_TRN_n                    ),
-    i_B_TRN_n                   (B_TRN_n                    ),
+    .i_A_TRN_n                  (A_TRN_n                    ),
+    .i_B_TRN_n                  (B_TRN_n                    ),
 
-    i_VHFF                      (VHFF                       ),
-    i_VC                        (VC                         ),
-    i_PR                        (PR                         ),
+    .i_VHFF                     (VHFF                       ),
+    .i_VC                       (VC                         ),
+    .i_PR                       (PR                         ),
 
-    o_A_FLIP                    (A_FLIP                     ),
-    o_B_FLIP                    (B_FLIP                     ),
+    .o_A_FLIP                   (A_FLIP                     ),
+    .o_B_FLIP                   (B_FLIP                     ),
 
-    o_CD                        (o_CD                       )
+    .o_CD                       (o_CD                       )
 );
 
 

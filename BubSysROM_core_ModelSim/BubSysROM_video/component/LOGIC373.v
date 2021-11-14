@@ -15,8 +15,10 @@ always @(posedge i_MCLK)
 begin
     if(i_LE)
     begin
-        REGISTER <= i_DIN;
+        REGISTER <= i_D;
     end
 end
 
 assign  o_Q =   (i_LE) ? i_D : REGISTER;
+
+endmodule
