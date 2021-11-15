@@ -108,6 +108,10 @@ assign  horizontal_tile_addr =  (ABS_4H == 1'b0) ?
                                     TMA_HSCROLL_VALUE[8:3] + {FLIP_n256H, FLIP_128HA, FLIP_64H, FLIP_32H, FLIP_16H, FLIP_8H} :
                                     TMB_HSCROLL_VALUE[8:3] + {FLIP_n256H, FLIP_128HA, FLIP_64H, FLIP_32H, FLIP_16H, FLIP_8H};
 
+wire    [5:0]   __REF_TMA_HSCROLL_83 = TMA_HSCROLL_VALUE[8:3];
+wire    [5:0]   __REF_TMB_HSCROLL_83 = TMB_HSCROLL_VALUE[8:3];
+wire    [5:0]   __REF_HSCROLL_ADDER = {FLIP_n256H, FLIP_128HA, FLIP_64H, FLIP_32H, FLIP_16H, FLIP_8H};
+
 //shift
 assign  o_SHIFTA1 = (TMA_HSCROLL_VALUE[2:0] + {FLIP_4H, FLIP_2H, FLIP_1H} == 3'd7) ? 1'b0 : 1'b1;
 assign  o_SHIFTA2 = (TMA_HSCROLL_VALUE[2:0] + {FLIP_4H, FLIP_2H, FLIP_1H} == 3'd3) ? 1'b0 : 1'b1;
@@ -127,7 +131,7 @@ begin
         case({ABS_4H, ABS_2H, ABS_1H})
             3'd3: begin TMAB_VSCROLL_VALUE     <= i_GFXDATA; //latch TM-B second at px3
                         o_TILELINEADDR         <= TMAB_VSCROLL_VALUE[2:0] + {FLIP_4V, FLIP_2V, FLIP_1V}; end
-            3'd7: begin TMAB_VSCROLL_VALUE     <= i_GFXDATA; //latch TM-A first at px7
+            3'd7: begin TMAB_VSCROLL_VALUE     <= i_GFXDATA; //latch TM-A first at px7 
                         o_TILELINEADDR         <= TMAB_VSCROLL_VALUE[2:0] + {FLIP_4V, FLIP_2V, FLIP_1V}; end
             default: begin end
         endcase

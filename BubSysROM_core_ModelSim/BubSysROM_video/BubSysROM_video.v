@@ -129,7 +129,7 @@ wire            ABS_8H;
 wire            ABS_4H;
 wire            ABS_2H;
 wire            ABS_1H;
-wire            ABS_128HA = (ABS_256H & ABS_128H) | (~ABS_256H & ABS_32H);
+wire            ABS_128HA = (ABS_256H & ABS_128H) | (ABS_n256H & ABS_32H);
 
 wire            ABS_128V;
 wire            ABS_64V;
@@ -279,6 +279,14 @@ assign  VRTIME = ~(DFF_17H_A & ~SR_15H[3]); //15G LS00 NAND
 assign  CHAMPX = SR_15H[2] | SR_15H[1]; //CHAMPX+CHAMPX1 14H LS32 OR
 assign  OBJCLRWE = SR_15H[2] | ~SR_15H[1]; //14H LS32 OR
 
+reg             CHAMPX2;
+always @(posedge i_EMU_MCLK)
+begin
+    if(!i_EMU_CLK18MNCEN_n)
+    begin
+        CHAMPX2 = CHAMPX;
+    end
+end
 
 
 //
@@ -616,17 +624,7 @@ wire    [3:0]   PR = vram1_dout[15:12];
 
 wire    [7:0]   VCA;
 wire    [13:0]  __REF_VCA_ORIGINAL = {tile_code, line_addr ^ {3{VVFF}}};
-assign  VCA =   (CHAMPX == 1'b0) ?
-                    {   //CAS
-                        1'b1,
-                        tile_code[10],
-                        tile_code[9],
-                        tile_code[8],
-                        tile_code[7],
-                        tile_code[6],
-                        tile_code[5],
-                        1'b1
-                    } :
+assign  VCA =   (CHAMPX2 == 1'b0) ?
                     {   //RAS
                         tile_code[4], 
                         tile_code[3],
@@ -636,6 +634,16 @@ assign  VCA =   (CHAMPX == 1'b0) ?
                         line_addr[2] ^ VVFF,
                         line_addr[1] ^ VVFF,
                         line_addr[0] ^ VVFF
+                    } :
+                    {   //CAS
+                        1'b1,
+                        tile_code[10],
+                        tile_code[9],
+                        tile_code[8],
+                        tile_code[7],
+                        tile_code[6],
+                        tile_code[5],
+                        1'b1                        
                     };
 
 
@@ -659,7 +667,7 @@ wire    [7:0]   objram_readlatch_q;
     /DTACK  ¯S0¯¯S1¯¯S2¯¯S3¯¯S4¯|_w___w__S5__S6|¯S7¯¯¯¯¯¯¯¯¯¯S0¯¯S1¯¯S2¯¯S3¯¯S4¯|_w___w__S5__S6|¯S7¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
                                >row >column            >row >column
-    CHAMPX1 ¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    CHAMPX2 ¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯
     /RAS    ___________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|________________     15ns(LS14) delayed
     /CAS    ________________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|___________     15ns*4(LS14) + 25ns(220pF) = about 85ns delayed
 
@@ -680,17 +688,7 @@ wire    [7:0]   refresh_addr = {ABS_16V, ABS_8V, ABS_4V, ABS_2V, ABS_1V, ABS_128
 wire    [7:0]   cpu_addr;
 assign  cpu_addr =  (i_CHACS_n == 1'b1) ?
                         refresh_addr :
-                        (CHAMPX == 1'b0) ?
-                            {   //CAS
-                                1'b1,           //HIGH
-                                i_CPU_ADDR[14], //A15
-                                i_CPU_ADDR[13], //A14
-                                i_CPU_ADDR[12], //A13
-                                i_CPU_ADDR[11], //A12
-                                i_CPU_ADDR[10], //A11
-                                i_CPU_ADDR[9],  //A10
-                                1'b1            //HIGH
-                            } :
+                        (CHAMPX2 == 1'b0) ?
                             {   //RAS
                                 i_CPU_ADDR[8], //A9
                                 i_CPU_ADDR[7], //A8
@@ -700,6 +698,16 @@ assign  cpu_addr =  (i_CHACS_n == 1'b1) ?
                                 i_CPU_ADDR[3], //A4
                                 i_CPU_ADDR[2], //A3
                                 i_CPU_ADDR[1]  //A2
+                            } :
+                            {   //CAS
+                                1'b1,           //HIGH
+                                i_CPU_ADDR[14], //A15
+                                i_CPU_ADDR[13], //A14
+                                i_CPU_ADDR[12], //A13
+                                i_CPU_ADDR[11], //A12
+                                i_CPU_ADDR[10], //A11
+                                i_CPU_ADDR[9],  //A10
+                                1'b1            //HIGH
                             };
 
 //LS157*2 11A/B MUX
@@ -709,7 +717,7 @@ assign  gfx_addr = VCA;
 
 //LS157*2 10A/B MUX
 wire    [7:0]   charram_addr;
-assign  charram_addr =  (~ABS_2H == 1'b0) ? cpu_addr : gfx_addr;
+assign  charram_addr =  (~ABS_2H == 1'b0) ? gfx_addr : cpu_addr;
 
 
 //
@@ -758,7 +766,7 @@ wire            charram2l_wr = charramu_en | charram2_rw;
 //declare charram
 wire    [15:0]  charram1_dout; //A1=0
 wire    [15:0]  charram2_dout; //A1=1
-DRAM16k4 CHARRAM_PX0 //6B
+DRAM16k4_charram_px0 CHARRAM_PX0 //6B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -769,7 +777,7 @@ DRAM16k4 CHARRAM_PX0 //6B
     .i_WR_n                     (charram1u_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4 CHARRAM_PX1 //6A
+DRAM16k4_charram_px1 CHARRAM_PX1 //6A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -780,7 +788,7 @@ DRAM16k4 CHARRAM_PX1 //6A
     .i_WR_n                     (charram1u_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4 CHARRAM_PX2 //2B
+DRAM16k4_charram_px2 CHARRAM_PX2 //2B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -791,7 +799,7 @@ DRAM16k4 CHARRAM_PX2 //2B
     .i_WR_n                     (charram1l_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4 CHARRAM_PX3 //2A
+DRAM16k4_charram_px3 CHARRAM_PX3 //2A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -802,7 +810,7 @@ DRAM16k4 CHARRAM_PX3 //2A
     .i_WR_n                     (charram1l_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4 CHARRAM_PX4 //7B
+DRAM16k4_charram_px4 CHARRAM_PX4 //7B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -813,7 +821,7 @@ DRAM16k4 CHARRAM_PX4 //7B
     .i_WR_n                     (charram2u_wr               ),
     .i_RD_n                     (charram2_rd                )
 );
-DRAM16k4 CHARRAM_PX5 //7A
+DRAM16k4_charram_px5 CHARRAM_PX5 //7A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -824,7 +832,7 @@ DRAM16k4 CHARRAM_PX5 //7A
     .i_WR_n                     (charram2u_wr               ),
     .i_RD_n                     (charram2_rd                )
 );
-DRAM16k4 CHARRAM_PX6 //4B
+DRAM16k4_charram_px6 CHARRAM_PX6 //4B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -835,7 +843,7 @@ DRAM16k4 CHARRAM_PX6 //4B
     .i_WR_n                     (charram2l_wr               ),
     .i_RD_n                     (charram2_rd                )
 );
-DRAM16k4 CHARRAM_PX7 //4A
+DRAM16k4_charram_px7 CHARRAM_PX7 //4A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -889,7 +897,7 @@ K005290 K005290_main
     .i_GFXDATA                  ({charram1_dout, charram2_dout}),
                             
     .i_ABS_n4H                  (~ABS_4H                    ),
-    .i_ABS_2H                   (~ABS_2H                    ),
+    .i_ABS_2H                   (ABS_2H                     ),
                             
     .i_AFF                      (AFF                        ),
     .i_BFF                      (BFF                        ),
@@ -940,7 +948,7 @@ K005293 K005293_main
 
     .i_A_PIXEL                  (A_PIXEL                    ),
     .i_B_PIXEL                  (B_PIXEL                    ),
-    .i_OBJBUF_DATA              (                           ),
+    .i_OBJBUF_DATA              (16'h0000                   ),
 
     .i_A_TRN_n                  (A_TRN_n                    ),
     .i_B_TRN_n                  (B_TRN_n                    ),
