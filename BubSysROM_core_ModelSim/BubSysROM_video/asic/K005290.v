@@ -59,8 +59,8 @@ begin
     end
 end
 
-wire            pixel3_n = i_ABS_2H & ABS_2H_dl & i_ABS_n4H;
-wire            pixel7_n = i_ABS_2H & ABS_2H_dl & ~i_ABS_n4H;
+wire            pixel3_n = ~(i_ABS_2H & ABS_2H_dl & i_ABS_n4H);
+wire            pixel7_n = ~(i_ABS_2H & ABS_2H_dl & ~i_ABS_n4H);
 
 
 //
@@ -141,39 +141,25 @@ begin
     begin
         case(i_A_MODE)
             2'b00: begin end
-            2'b01: begin
-                if(i_AFF == 1'b0) begin
-                    A_PIXEL_DELAY1 <= 4'h0; //displays black only
-                end
-                else begin                  //shift reversed direction(right)
-                    A_PIXEL0 <= 4'h0;
-                    A_PIXEL1 <= A_PIXEL0;
-                    A_PIXEL2 <= A_PIXEL1;
-                    A_PIXEL3 <= A_PIXEL2;
-                    A_PIXEL4 <= A_PIXEL3;
-                    A_PIXEL5 <= A_PIXEL4;
-                    A_PIXEL6 <= A_PIXEL5;
-                    A_PIXEL7 <= A_PIXEL6;
-                    
-                    A_PIXEL_DELAY1 <= A_PIXEL7;
-                end
+            2'b01: begin //shift reversed direction(right)                 
+                A_PIXEL0 <= 4'h0;
+                A_PIXEL1 <= A_PIXEL0;
+                A_PIXEL2 <= A_PIXEL1;
+                A_PIXEL3 <= A_PIXEL2;
+                A_PIXEL4 <= A_PIXEL3;
+                A_PIXEL5 <= A_PIXEL4;
+                A_PIXEL6 <= A_PIXEL5;
+                A_PIXEL7 <= A_PIXEL6;
             end
             2'b10: begin
-                if(i_AFF == 1'b0) begin //shift normally
-                    A_PIXEL_DELAY1 <= A_PIXEL0;
-
-                    A_PIXEL0 <= A_PIXEL1;
-                    A_PIXEL1 <= A_PIXEL2;
-                    A_PIXEL2 <= A_PIXEL3;
-                    A_PIXEL3 <= A_PIXEL4;
-                    A_PIXEL4 <= A_PIXEL5;
-                    A_PIXEL5 <= A_PIXEL6;
-                    A_PIXEL6 <= A_PIXEL7;
-                    A_PIXEL7 <= 4'h0;
-                end
-                else begin //flip
-                    A_PIXEL_DELAY1 <= 4'h0; //displays black only
-                end       
+                A_PIXEL0 <= A_PIXEL1;
+                A_PIXEL1 <= A_PIXEL2;
+                A_PIXEL2 <= A_PIXEL3;
+                A_PIXEL3 <= A_PIXEL4;
+                A_PIXEL4 <= A_PIXEL5;
+                A_PIXEL5 <= A_PIXEL6;
+                A_PIXEL6 <= A_PIXEL7;
+                A_PIXEL7 <= 4'h0;    
             end
             2'b11: begin
                 A_PIXEL0 <= A_LINELATCH[31:28];
@@ -193,6 +179,15 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n) 
     begin
+        if(i_AFF == 1'b0) 
+        begin
+            A_PIXEL_DELAY1 <= A_PIXEL0; //shift normally
+        end
+        else 
+        begin                  
+            A_PIXEL_DELAY1 <= A_PIXEL7; //shift reversed direction(right)
+        end
+
         A_PIXEL_DELAY2 <= A_PIXEL_DELAY1;
         A_PIXEL_DELAY3 <= A_PIXEL_DELAY2;
 
@@ -223,38 +218,24 @@ begin
         case(i_B_MODE)
             2'b00: begin end
             2'b01: begin
-                if(i_BFF == 1'b0) begin
-                    o_B_PIXEL <= 4'h0;      //displays black only
-                end
-                else begin                  //shift reversed direction(right)
-                    B_PIXEL0 <= 4'h0;
-                    B_PIXEL1 <= B_PIXEL0;
-                    B_PIXEL2 <= B_PIXEL1;
-                    B_PIXEL3 <= B_PIXEL2;
-                    B_PIXEL4 <= B_PIXEL3;
-                    B_PIXEL5 <= B_PIXEL4;
-                    B_PIXEL6 <= B_PIXEL5;
-                    B_PIXEL7 <= B_PIXEL6;
-
-                    o_B_PIXEL <= B_PIXEL7;
-                end
+                B_PIXEL0 <= 4'h0;
+                B_PIXEL1 <= B_PIXEL0;
+                B_PIXEL2 <= B_PIXEL1;
+                B_PIXEL3 <= B_PIXEL2;
+                B_PIXEL4 <= B_PIXEL3;
+                B_PIXEL5 <= B_PIXEL4;
+                B_PIXEL6 <= B_PIXEL5;
+                B_PIXEL7 <= B_PIXEL6;
             end
             2'b10: begin
-                if(i_BFF == 1'b0) begin //shift normally
-                    o_B_PIXEL <= B_PIXEL0;
-
-                    B_PIXEL0 <= B_PIXEL1;
-                    B_PIXEL1 <= B_PIXEL2;
-                    B_PIXEL2 <= B_PIXEL3;
-                    B_PIXEL3 <= B_PIXEL4;
-                    B_PIXEL4 <= B_PIXEL5;
-                    B_PIXEL5 <= B_PIXEL6;
-                    B_PIXEL6 <= B_PIXEL7;
-                    B_PIXEL7 <= 4'h0;
-                end
-                else begin //flip
-                    o_B_PIXEL <= 4'h0;     //displays black only
-                end       
+                B_PIXEL0 <= B_PIXEL1;
+                B_PIXEL1 <= B_PIXEL2;
+                B_PIXEL2 <= B_PIXEL3;
+                B_PIXEL3 <= B_PIXEL4;
+                B_PIXEL4 <= B_PIXEL5;
+                B_PIXEL5 <= B_PIXEL6;
+                B_PIXEL6 <= B_PIXEL7;
+                B_PIXEL7 <= 4'h0;
             end
             2'b11: begin
                 B_PIXEL0 <= B_LINELATCH[31:28];
@@ -270,8 +251,22 @@ begin
     end
 end
 
-assign  o_B_TRN_n = o_B_PIXEL[3] | o_B_PIXEL[2] | o_B_PIXEL[1] | o_B_PIXEL[0];
+always @(posedge i_EMU_MCLK)
+begin
+    if(!i_EMU_CLK6MPCEN_n) 
+    begin
+        if(i_BFF == 1'b0) 
+        begin
+            o_B_PIXEL <= B_PIXEL0; //shift normally
+        end
+        else 
+        begin                  
+            o_B_PIXEL <= B_PIXEL7; //shift reversed direction(right)
+        end
+    end
+end
 
+assign  o_B_TRN_n = o_B_PIXEL[3] | o_B_PIXEL[2] | o_B_PIXEL[1] | o_B_PIXEL[0];
 
 
 endmodule
