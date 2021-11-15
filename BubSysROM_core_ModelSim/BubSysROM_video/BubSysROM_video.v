@@ -948,7 +948,7 @@ K005293 K005293_main
 
     .i_A_PIXEL                  (A_PIXEL                    ),
     .i_B_PIXEL                  (B_PIXEL                    ),
-    .i_OBJBUF_DATA              (                           ),
+    .i_OBJBUF_DATA              (16'h0000                   ),
 
     .i_A_TRN_n                  (A_TRN_n                    ),
     .i_B_TRN_n                  (B_TRN_n                    ),
