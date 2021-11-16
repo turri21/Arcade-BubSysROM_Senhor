@@ -41,7 +41,7 @@ BubSysROM_video main
 
     .o_VBLANK_n                     (VBLANK                 ),
     .o_VSYNC_n                      (VSYNC                  ),
-    .o_CSYNC_n                      (CSYNC                  ),
+    .o_SYNC_n                       (CSYNC                  ),
     .o_CD                           (CD                     )
 );
 

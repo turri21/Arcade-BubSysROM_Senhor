@@ -78,8 +78,16 @@ add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/i_B_
 add wave -noupdate /BubSysROM_video_tb/main/K005293_main/a_palette
 add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/b_palette
 add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/o_CD
+add wave -noupdate /BubSysROM_video_tb/main/ABS_8H
+add wave -noupdate /BubSysROM_video_tb/main/ABS_4H
+add wave -noupdate /BubSysROM_video_tb/main/ABS_2H
+add wave -noupdate /BubSysROM_video_tb/main/ABS_1H
+add wave -noupdate -radix unsigned /BubSysROM_video_tb/main/K005292_main/horizontal_counter
+add wave -noupdate -radix unsigned -childformat {{{/BubSysROM_video_tb/main/K005292_main/vertical_counter[8]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[7]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[6]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[5]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[4]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[3]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[2]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[1]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[0]} -radix unsigned}} -expand -subitemconfig {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[8]} {-radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[7]} {-radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[6]} {-radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[5]} {-radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[4]} {-radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[3]} {-radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[2]} {-radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[1]} {-radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[0]} {-radix unsigned}} /BubSysROM_video_tb/main/K005292_main/vertical_counter
+add wave -noupdate /BubSysROM_video_tb/main/K005292_main/o_DMA_n
+add wave -noupdate /BubSysROM_video_tb/main/dma
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {539110 ns} 0}
+WaveRestoreCursors {{Cursor 1} {5273950 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 179
 configure wave -valuecolwidth 100
@@ -95,4 +103,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {537060 ns} {541210 ns}
+WaveRestoreZoom {5203650 ns} {5858230 ns}

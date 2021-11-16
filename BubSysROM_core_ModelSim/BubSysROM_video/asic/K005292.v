@@ -56,11 +56,13 @@ module K005292
     output  reg             o_VCLK = 1'b0,
 
     output  reg             o_FRAMEPARITY = 1'b0,
-    output  reg             o_DMA_n = 1'b1,
 
     output  wire            o_VSYNC_n,
     output  wire            o_CSYNC_n
 );
+
+
+reg             __REF_DMA_n;
 
 
 
@@ -164,13 +166,13 @@ begin
                         end
 
                         //DMA
-                        if(vertical_counter > 9'd478 && vertical_counter < 9'd496)
+                        if(vertical_counter > 9'd478 && vertical_counter < 9'd495)
                         begin
-                            o_DMA_n <= 1'b0;
+                            __REF_DMA_n <= 1'b0;
                         end
                         else
                         begin
-                            o_DMA_n <= 1'b1;
+                            __REF_DMA_n <= 1'b1;
                         end
 
                         vertical_counter <= vertical_counter + 9'd1;

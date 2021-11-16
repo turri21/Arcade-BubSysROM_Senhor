@@ -27,7 +27,7 @@ module BubSysROM_video
     output  wire            o_VBLANK_n,
 
     output  wire            o_VSYNC_n,
-    output  wire            o_CSYNC_n,
+    output  reg             o_SYNC_n,
 
     output  wire    [10:0]  o_CD
 );
@@ -89,7 +89,7 @@ begin
     end
 end
 
-//ORed with 18M negativs cen
+//ORed with 18M negative cen
 assign  o_EMU_CLK9MPCEN_n = cen_register[3] | i_EMU_CLK18MNCEN_n;
 assign  o_EMU_CLK9MNCEN_n = cen_register[2] | i_EMU_CLK18MNCEN_n;
 assign  o_EMU_CLK6MPCEN_n = cen_register[1] | i_EMU_CLK18MNCEN_n;
@@ -111,7 +111,7 @@ wire            __REF_CLK6M = cen_register[1];
 ////
 
 //
-//  asic seciton
+//  asic section
 //
 
 wire            HBLANK_n;
@@ -129,6 +129,7 @@ wire            ABS_8H;
 wire            ABS_4H;
 wire            ABS_2H;
 wire            ABS_1H;
+wire            ABS_n1H = ~ABS_1H;
 wire            ABS_128HA = (ABS_256H & ABS_128H) | (ABS_n256H & ABS_32H);
 
 wire            ABS_128V;
@@ -160,6 +161,8 @@ wire            FLIP_2V;
 wire            FLIP_1V;
 
 wire            VCLK;
+
+wire            CSYNC_n;
 
 //declare K005292 core: this core does not have LS393 sprite code up counter
 K005292 K005292_main
@@ -215,13 +218,27 @@ K005292 K005292_main
 
     .o_VCLK                     (VCLK                       ),
 
-    .o_FRAMEPARITY              (                           ),  //256V
-    .o_DMA_n                    (                           ),
+    .o_FRAMEPARITY              (                           ), //256V
     
     .o_VSYNC_n                  (o_VSYNC_n                  ),
-    .o_CSYNC_n                  (o_CSYNC_n                  )
+    .o_CSYNC_n                  (CSYNC_n                    )
 );
 
+
+//
+//  CSYNC DFF
+//
+
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MPCEN_n)
+    begin
+        if({ABS_4H, ABS_2H, ABS_1H} == 3'd3) //posedge of 4H
+        begin
+            o_SYNC_n <= CSYNC_n;
+        end        
+    end
+end
 
 
 //
@@ -277,8 +294,11 @@ assign  TIME1 = ~(~DFF_17H_A | __REF_CLK6M); //16H LS02 NOR
 assign  TIME2 = ~(DFF_17H_A & SR_15H[2]); //15G LS00 NAND
 assign  VRTIME = ~(DFF_17H_A & ~SR_15H[3]); //15G LS00 NAND
 assign  CHAMPX = SR_15H[2] | SR_15H[1]; //CHAMPX+CHAMPX1 14H LS32 OR
+wire    CHAMPX1 = CHAMPX;
 assign  OBJCLRWE = SR_15H[2] | ~SR_15H[1]; //14H LS32 OR
 
+//CHAMPX2 is 30-44ns(TYP 15ns, MAX 22ns per a single gate) delayed signal of CHAMPX
+//I delayed this 54.25ns to make DRAM's CAS/RAS latch to sample the correct address.
 reg             CHAMPX2;
 always @(posedge i_EMU_MCLK)
 begin
@@ -294,9 +314,9 @@ end
 //
 
 //timing singals
-wire            OBJRW; //switches mux between active display+buffer clear/005295 write
+wire            OBJRW;  //switches mux between active display+buffer clear/005295 write
 wire            OBJCLR; //fix mux output as 0 when clearing the buffer by writing 0s
-wire            BLK; //LS09 driver disable
+wire            BLK;    //LS09 driver disable
 
 //19H LS74A
 reg             DFF_19H_A;
@@ -373,7 +393,7 @@ assign  BLK = DFF_17A_A;
 ////
 
 //
-//  scrollram seciton
+//  scrollram section
 //
 
 /*
@@ -472,7 +492,7 @@ LOGIC373 SCROLLRAM_CPULATCH
 
 
 //
-//  asic seciton
+//  asic section
 //
 
 wire    [11:0]  vram_addr;
@@ -649,7 +669,89 @@ assign  VCA =   (CHAMPX2 == 1'b0) ?
 
 
 
+
+
+
+
+///////////////////////////////////////////////////////////
+//////  K005295
+////
+
+//
+//  SPRITE NAMETABLE SECTION
+//
+
+//make objram address
+wire    [10:0]  objram_addr;
+assign  objram_addr =   (~ABS_n1H == 1'b0) ?
+                            i_CPU_ADDR[10:0] :
+                            {ABS_8V, ABS_4V, ABS_2V, ABS_1V, ABS_128H, ABS_64H, ABS_32H, ABS_16H, ABS_8H, ABS_4H, ABS_2H};
+
+//make objram wr signal
+wire            objram_wr = |{i_OBJRAM_n, i_CPU_RW, i_CPU_LDS_n, TIME2}; //LS32*4
+
+//declare OBJRAM
+wire    [7:0]   objram_dout;
+SRAM2k8_obj OBJRAM_LOW
+(
+    .i_MCLK                     (i_EMU_MCLK                 ),
+    .i_ADDR                     (objram_addr                ),
+    .i_DIN                      (i_CPU_DIN[7:0]             ),
+    .o_DOUT                     (objram_dout                ),
+    .i_WR_n                     (objram_wr                  ),
+    .i_RD_n                     (1'b0                       )
+);
+
+//declare CPU side latch
 wire    [7:0]   objram_readlatch_q;
+LOGIC373 OBJRAM_CPULATCH
+(
+    .i_MCLK                     (i_EMU_MCLK                 ),
+    .i_D                        (objram_dout                ),
+    .o_Q                        (objram_readlatch_q         ),
+    .i_LE                       (TIME1                      )
+);
+
+
+//
+//  SPRITE DMA SECTION
+//
+
+wire            dma = ~&{ABS_128V, ABS_64V, ABS_32V, ~ABS_16V}; //16C NAND; vcounter 480-495
+
+reg     [7:0]   obj_priority;
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MPCEN_n)
+    begin
+        if({ABS_8H, ABS_4H, ABS_2H, ABS_1H} == 4'd1) //posedge of /px1 of every 16 pixels
+        begin
+           obj_priority <= objram_dout;
+        end
+    end
+end
+
+reg     [7:0]   obj_attr;
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MPCEN_n)
+    begin
+        if(ABS_1H == 1'b0) //posedge of 1H
+        begin
+           obj_attr <= objram_dout;
+        end
+    end
+end
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -923,11 +1025,10 @@ K005290 K005290_main
 //////  K005293
 ////
 
-wire            SHIFTA1_CLKD = SHIFTA1 | __REF_CLK6M;
-wire            SHIFTA2_CLKD = SHIFTA2 | __REF_CLK6M;
-wire            SHIFTB_CLKD = SHIFTB | __REF_CLK6M;
+wire            SHIFTA1_CLKD = SHIFTA1; //| __REF_CLK6M;    Note that the original ORed SHIFT signal
+wire            SHIFTA2_CLKD = SHIFTA2; // | __REF_CLK6M;   with video clock to compensate the
+wire            SHIFTB_CLKD = SHIFTB; // | __REF_CLK6M;     propagation delay.
 
-wire            ABS_n1H = ~ABS_1H;
 wire            ABS_n6n7H = ~(ABS_4H & ABS_2H);
 wire            ABS_n2n3H = ~(~ABS_4H & ABS_2H);
 

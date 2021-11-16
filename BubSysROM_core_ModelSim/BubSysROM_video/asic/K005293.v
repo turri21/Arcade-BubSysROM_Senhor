@@ -101,7 +101,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        if(i_SHIFTA1 == 1'b0) //posedge of pixel 7
+        if(i_SHIFTA1 == 1'b0) //posedge of SHIFT-A1
         begin
             A_PROPERTY_DELAY3 <= A_PROPERTY_DELAY2;
         end
@@ -112,7 +112,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        if(i_SHIFTA2 == 1'b0) //posedge of pixel 7
+        if(i_SHIFTA2 == 1'b0) //posedge of SHIFT-A2
         begin
             A_PROPERTY_DELAY4 <= A_PROPERTY_DELAY3;
         end
@@ -139,7 +139,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        if((i_ABS_n6n7H || i_ABS_n1H) == 1'b0) //posedge of pixel 3
+        if((i_ABS_n6n7H || i_ABS_n1H) == 1'b0) //posedge of pixel 7
         begin
             B_PROPERTY_DELAY1 <= {i_PR[1:0], i_VHFF, i_VC};
         end
@@ -150,7 +150,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        if((i_ABS_n2n3H || i_ABS_n1H) == 1'b0) //posedge of pixel 7
+        if((i_ABS_n2n3H || i_ABS_n1H) == 1'b0) //posedge of pixel 3
         begin
             B_PROPERTY_DELAY2 <= B_PROPERTY_DELAY1;
         end
@@ -161,7 +161,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        if(i_SHIFTB == 1'b0) //posedge of pixel 7
+        if(i_SHIFTB == 1'b0) //posedge of SHIFT-B
         begin
             B_PROPERTY_DELAY3 <= B_PROPERTY_DELAY2;
         end
@@ -190,7 +190,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        if(i_ABS_n1H == 1'b0) //posedge of pixel 7
+        if(i_ABS_n1H == 1'b0) //every odd pixel
         begin
             OBJ_PIXEL1 <= i_OBJBUF_DATA[15:8]; //BUFFER A = ODD PIXEL
             OBJ_PIXEL0 <= i_OBJBUF_DATA[7:0]; //BUFFER B = EVEN PIXEL
