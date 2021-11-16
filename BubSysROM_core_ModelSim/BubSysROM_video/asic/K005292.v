@@ -127,7 +127,7 @@ begin
         o_VBLANK_n <= 1'b0;
         o_VBLANKH_n <= 1'b0;
         o_FRAMEPARITY <= 1'b0;
-        o_DMA_n <= 1'b1;
+        __REF_DMA_n <= 1'b1;
     end
     else
     begin //count up
