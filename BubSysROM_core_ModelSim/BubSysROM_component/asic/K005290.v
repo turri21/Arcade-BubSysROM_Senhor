@@ -251,18 +251,15 @@ begin
     end
 end
 
-always @(posedge i_EMU_MCLK)
+always @(*)
 begin
-    if(!i_EMU_CLK6MPCEN_n) 
+    if(i_BFF == 1'b0) 
     begin
-        if(i_BFF == 1'b0) 
-        begin
-            o_B_PIXEL <= B_PIXEL0; //shift normally
-        end
-        else 
-        begin                  
-            o_B_PIXEL <= B_PIXEL7; //shift reversed direction(right)
-        end
+        o_B_PIXEL <= B_PIXEL0; //shift normally
+    end
+    else 
+    begin                  
+        o_B_PIXEL <= B_PIXEL7; //shift reversed direction(right)
     end
 end
 

@@ -2,7 +2,7 @@
     4416 DRAM
 */
 
-module DRAM16k4_charram_px7
+module DRAM16k4_charram_px1
 (
     input   wire            i_MCLK,
 	input   wire    [7:0]   i_ADDR,
@@ -69,7 +69,7 @@ end
 
 initial
 begin
-    $readmemh("charram_px7.txt", RAM16k4);
+    $readmemh("init_charram_px1.txt", RAM16k4);
 end
 
 endmodule

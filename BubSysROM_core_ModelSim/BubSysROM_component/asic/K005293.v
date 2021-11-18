@@ -73,7 +73,7 @@ reg     [11:0]  A_PROPERTY_DELAY4;
 
 wire    [3:0]   a_pr = A_PROPERTY_DELAY4[11:8];
 wire    [6:0]   a_palette = A_PROPERTY_DELAY4[6:0];
-assign  o_A_FLIP = A_PROPERTY_DELAY4[7];
+assign  o_A_FLIP = A_PROPERTY_DELAY3[7];
 
 always @(posedge i_EMU_MCLK)
 begin
