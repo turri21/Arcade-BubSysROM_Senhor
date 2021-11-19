@@ -58,19 +58,20 @@ module K005292
     output  reg             o_FRAMEPARITY = 1'b0,
 
     output  wire            o_VSYNC_n,
-    output  wire            o_CSYNC_n
+    output  wire            o_CSYNC_n,
+
+    output  wire    [8:0]   __REF_HCOUNTER,
+    output  wire    [8:0]   __REF_VCOUNTER
 );
 
-
 reg             __REF_DMA_n;
-
-
 
 ///////////////////////////////////////////////////////////
 //////  PIXEL COUNTER/BLANKING/SYNC/DMA
 ////
 
 reg     [8:0]   horizontal_counter = 9'd511;
+assign  __REF_HCOUNTER = horizontal_counter;
 assign  {
             o_ABS_256H, 
             o_ABS_128H, 
@@ -95,6 +96,7 @@ assign  {
 assign  o_HBLANK_n = horizontal_counter[8];
 
 reg     [8:0]   vertical_counter = 9'd248;
+assign  __REF_VCOUNTER = vertical_counter;
 assign  {
             o_ABS_128V, 
             o_ABS_64V, 

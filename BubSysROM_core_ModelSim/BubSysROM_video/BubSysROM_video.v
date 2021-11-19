@@ -8,9 +8,11 @@ module BubSysROM_video
     output  wire            o_EMU_CLK6MPCEN_n, //REF_CLK6M
     output  wire            o_EMU_CLK6MNCEN_n,
 
+    input   wire            i_MRST_n,
+
     input   wire    [14:0]  i_CPU_ADDR,
-    input   wire    [15:0]  i_CPU_DIN,
-    output  reg     [15:0]  o_CPU_DOUT,
+    output  reg     [15:0]  o_CPU_DIN,
+    input   wire    [15:0]  i_CPU_DOUT,
     input   wire            i_CPU_RW,
     input   wire            i_CPU_UDS_n,
     input   wire            i_CPU_LDS_n,
@@ -29,9 +31,13 @@ module BubSysROM_video
     output  wire            o_VSYNC_n,
     output  reg             o_SYNC_n,
 
-    output  wire    [10:0]  o_CD
-);
+    output  wire            o_BLK,
 
+    output  wire    [10:0]  o_CD,
+
+    output  wire    [8:0]   __REF_HCOUNTER, //for pixel capture purpose
+    output  wire    [8:0]   __REF_VCOUNTER
+);
 
 ///////////////////////////////////////////////////////////
 //////  CLOCK DIVIDER
@@ -170,7 +176,7 @@ K005292 K005292_main
     .i_EMU_MCLK                 (i_EMU_MCLK                 ),
     .i_EMU_CLK6MPCEN_n          (o_EMU_CLK6MPCEN_n          ),
 
-    .i_MRST_n                   (1'b1                       ),
+    .i_MRST_n                   (i_MRST_n                   ),
 
     .i_HFLIP                    (i_HFLIP                    ),
     .i_VFLIP                    (i_VFLIP                    ),
@@ -221,7 +227,10 @@ K005292 K005292_main
     .o_FRAMEPARITY              (                           ), //256V
     
     .o_VSYNC_n                  (o_VSYNC_n                  ),
-    .o_CSYNC_n                  (CSYNC_n                    )
+    .o_CSYNC_n                  (CSYNC_n                    ),
+
+    .__REF_HCOUNTER             (__REF_HCOUNTER             ),
+    .__REF_VCOUNTER             (__REF_VCOUNTER             )
 );
 
 
@@ -316,7 +325,6 @@ end
 //timing singals
 wire            OBJRW;  //switches mux between active display+buffer clear/005295 write
 wire            OBJCLR; //fix mux output as 0 when clearing the buffer by writing 0s
-wire            BLK;    //LS09 driver disable
 
 //19H LS74A
 reg             DFF_19H_A;
@@ -379,7 +387,7 @@ end
 
 assign  OBJRW = DFF_19H_B;
 assign  OBJCLR = ~DFF_19H_B;
-assign  BLK = DFF_17A_A;
+assign  o_BLK = DFF_17A_A;
 
 
 
@@ -473,7 +481,7 @@ SRAM2k8_scroll SCROLLRAM_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (scrollram_addr             ),
-    .i_DIN                      (i_CPU_DIN[7:0]             ),
+    .i_DIN                      (i_CPU_DOUT[7:0]            ),
     .o_DOUT                     (scrollram_dout             ),
     .i_WR_n                     (scrollram_wr               ),
     .i_RD_n                     (1'b0                       )
@@ -581,7 +589,7 @@ SRAM4k8_vram1_high VRAM1_HIGH
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
-    .i_DIN                      (i_CPU_DIN[15:8]            ),
+    .i_DIN                      (i_CPU_DOUT[15:8]           ),
     .o_DOUT                     (vram1_dout[15:8]           ),
     .i_WR_n                     (vram1h_wr                  ),
     .i_RD_n                     (VRTIME                     )
@@ -591,7 +599,7 @@ SRAM4k8_vram1_low VRAM1_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
-    .i_DIN                      (i_CPU_DIN[7:0]             ),
+    .i_DIN                      (i_CPU_DOUT[7:0]            ),
     .o_DOUT                     (vram1_dout[7:0]            ),
     .i_WR_n                     (vram1l_wr                  ),
     .i_RD_n                     (VRTIME                     )
@@ -603,7 +611,7 @@ SRAM4k8_vram2 VRAM2_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
-    .i_DIN                      (i_CPU_DIN[7:0]             ),
+    .i_DIN                      (i_CPU_DOUT[7:0]            ),
     .o_DOUT                     (vram2_dout                 ),
     .i_WR_n                     (vram2l_wr                  ),
     .i_RD_n                     (VRTIME                     )
@@ -696,7 +704,7 @@ SRAM2k8_obj OBJRAM_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (objram_addr                ),
-    .i_DIN                      (i_CPU_DIN[7:0]             ),
+    .i_DIN                      (i_CPU_DOUT[7:0]            ),
     .o_DOUT                     (objram_dout                ),
     .i_WR_n                     (objram_wr                  ),
     .i_RD_n                     (1'b0                       )
@@ -872,7 +880,7 @@ DRAM16k4_charram_px0 CHARRAM_PX0 //6B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
-    .i_DIN                      (i_CPU_DIN[15:12]           ),
+    .i_DIN                      (i_CPU_DOUT[15:12]          ),
     .o_DOUT                     (charram1_dout[15:12]       ),
     .i_RAS_n                    (charram_ras_n              ),
     .i_CAS_n                    (charram_cas_n              ),
@@ -883,7 +891,7 @@ DRAM16k4_charram_px1 CHARRAM_PX1 //6A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
-    .i_DIN                      (i_CPU_DIN[11:8]            ),
+    .i_DIN                      (i_CPU_DOUT[11:8]           ),
     .o_DOUT                     (charram1_dout[11:8]        ),
     .i_RAS_n                    (charram_ras_n              ),
     .i_CAS_n                    (charram_cas_n              ),
@@ -894,7 +902,7 @@ DRAM16k4_charram_px2 CHARRAM_PX2 //2B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
-    .i_DIN                      (i_CPU_DIN[7:4]             ),
+    .i_DIN                      (i_CPU_DOUT[7:4]            ),
     .o_DOUT                     (charram1_dout[7:4]         ),
     .i_RAS_n                    (charram_ras_n              ),
     .i_CAS_n                    (charram_cas_n              ),
@@ -905,7 +913,7 @@ DRAM16k4_charram_px3 CHARRAM_PX3 //2A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
-    .i_DIN                      (i_CPU_DIN[3:0]             ),
+    .i_DIN                      (i_CPU_DOUT[3:0]            ),
     .o_DOUT                     (charram1_dout[3:0]         ),
     .i_RAS_n                    (charram_ras_n              ),
     .i_CAS_n                    (charram_cas_n              ),
@@ -916,7 +924,7 @@ DRAM16k4_charram_px4 CHARRAM_PX4 //7B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
-    .i_DIN                      (i_CPU_DIN[15:12]           ),
+    .i_DIN                      (i_CPU_DOUT[15:12]          ),
     .o_DOUT                     (charram2_dout[15:12]       ),
     .i_RAS_n                    (charram_ras_n              ),
     .i_CAS_n                    (charram_cas_n              ),
@@ -927,7 +935,7 @@ DRAM16k4_charram_px5 CHARRAM_PX5 //7A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
-    .i_DIN                      (i_CPU_DIN[11:8]            ),
+    .i_DIN                      (i_CPU_DOUT[11:8]           ),
     .o_DOUT                     (charram2_dout[11:8]        ),
     .i_RAS_n                    (charram_ras_n              ),
     .i_CAS_n                    (charram_cas_n              ),
@@ -938,7 +946,7 @@ DRAM16k4_charram_px6 CHARRAM_PX6 //4B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
-    .i_DIN                      (i_CPU_DIN[7:4]             ),
+    .i_DIN                      (i_CPU_DOUT[7:4]            ),
     .o_DOUT                     (charram2_dout[7:4]         ),
     .i_RAS_n                    (charram_ras_n              ),
     .i_CAS_n                    (charram_cas_n              ),
@@ -949,7 +957,7 @@ DRAM16k4_charram_px7 CHARRAM_PX7 //4A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
-    .i_DIN                      (i_CPU_DIN[3:0]             ),
+    .i_DIN                      (i_CPU_DOUT[3:0]            ),
     .o_DOUT                     (charram2_dout[3:0]         ),
     .i_RAS_n                    (charram_ras_n              ),
     .i_CAS_n                    (charram_cas_n              ),
@@ -1078,13 +1086,13 @@ K005293 K005293_main
 always @(*)
 begin
     case({i_VZCS_n, i_VCS1_n, i_VCS2_n, charcs1_n, charcs2_n, i_OBJRAM_n})
-        6'b011111: o_CPU_DOUT <= {8'hFF, scrollram_readlatch_q};
-        6'b101111: o_CPU_DOUT <= vram1_dout;
-        6'b110111: o_CPU_DOUT <= {8'hFF, vram2_dout};
-        6'b111011: o_CPU_DOUT <= charram1_dout;
-        6'b111101: o_CPU_DOUT <= charram2_dout;
-        6'b111110: o_CPU_DOUT <= {8'hFF, objram_readlatch_q};
-        default: o_CPU_DOUT <= 16'hFFFF; //pull up
+        6'b011111: o_CPU_DIN <= {8'hFF, scrollram_readlatch_q};
+        6'b101111: o_CPU_DIN <= vram1_dout;
+        6'b110111: o_CPU_DIN <= {8'hFF, vram2_dout};
+        6'b111011: o_CPU_DIN <= charram1_dout;
+        6'b111101: o_CPU_DIN <= charram2_dout;
+        6'b111110: o_CPU_DIN <= {8'hFF, objram_readlatch_q};
+        default: o_CPU_DIN <= 16'hFFFF; //pull up
     endcase
 end
 
