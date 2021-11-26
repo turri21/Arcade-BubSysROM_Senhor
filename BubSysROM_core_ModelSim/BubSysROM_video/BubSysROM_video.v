@@ -227,7 +227,7 @@ K005292 K005292_main
     .o_FRAMEPARITY              (                           ), //256V
     
     .o_VSYNC_n                  (o_VSYNC_n                  ),
-    .o_CSYNC_n                  (CSYNC_n                    ),
+    .o_CSYNC                    (CSYNC_n                    ),
 
     .__REF_HCOUNTER             (__REF_HCOUNTER             ),
     .__REF_VCOUNTER             (__REF_VCOUNTER             )
@@ -686,7 +686,7 @@ assign  VCA =   (CHAMPX2 == 1'b0) ?
 ////
 
 //
-//  SPRITE NAMETABLE SECTION
+//  OBJRAM SECTION
 //
 
 //make objram address
@@ -725,8 +725,9 @@ LOGIC373 OBJRAM_CPULATCH
 //  SPRITE DMA SECTION
 //
 
-wire            dma = ~&{ABS_128V, ABS_64V, ABS_32V, ~ABS_16V}; //16C NAND; vcounter 480-495
+wire            dma_n = ~&{ABS_128V, ABS_64V, ABS_32V, ~ABS_16V}; //16C NAND; vcounter 480-495
 
+//19G LS273
 reg     [7:0]   obj_priority;
 always @(posedge i_EMU_MCLK)
 begin
@@ -739,19 +740,40 @@ begin
     end
 end
 
+//17G LS374
 reg     [7:0]   obj_attr;
 always @(posedge i_EMU_MCLK)
 begin
     if(!o_EMU_CLK6MPCEN_n)
     begin
-        if(ABS_1H == 1'b0) //posedge of 1H
+        if(ABS_1H == 1'b1) //posedge of /px1
         begin
            obj_attr <= objram_dout;
         end
     end
 end
 
+//make objtable address
+wire    [10:0]  objtable_addr;
+assign  objtable_addr = (dma_n == 1'b0) ? 
+                            {obj_priority, ABS_8H, ABS_4H, ABS_2H} :
+                            {11'd0};
 
+
+//make objtable_wr
+wire            objtable_wr = ~(ABS_1H & ~dma_n);
+
+//declare objtable ram
+wire    [7:0]   objtable_dout;
+SRAM2k8 OBJTABLE
+(
+    .i_MCLK                     (i_EMU_MCLK                 ),
+    .i_ADDR                     (objtable_addr              ),
+    .i_DIN                      (obj_attr                   ),
+    .o_DOUT                     (objtable_dout              ),
+    .i_WR_n                     (objtable_wr                ),
+    .i_RD_n                     (1'b0                       )
+);
 
 
 

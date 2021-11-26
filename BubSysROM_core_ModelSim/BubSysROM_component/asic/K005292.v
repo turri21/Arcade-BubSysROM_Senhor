@@ -53,12 +53,12 @@ module K005292
     output  wire            o_FLIP_2V,
     output  wire            o_FLIP_1V,
 
-    output  reg             o_VCLK = 1'b0,
+    output  reg             o_VCLK,
 
     output  reg             o_FRAMEPARITY = 1'b0,
 
     output  wire            o_VSYNC_n,
-    output  wire            o_CSYNC_n,
+    output  reg             o_CSYNC,
 
     output  wire    [8:0]   __REF_HCOUNTER,
     output  wire    [8:0]   __REF_VCOUNTER
@@ -119,84 +119,26 @@ assign  {
             o_FLIP_1V
         } = vertical_counter[7:0] ^ {8{i_VFLIP}};
 
-always @(posedge i_EMU_MCLK or negedge i_MRST_n)
+
+//
+//  HCOUNTER
+//
+
+always @(posedge i_EMU_MCLK)
 begin
     if(!i_MRST_n) //asynchronous reset
     begin
         horizontal_counter <= 9'd128;
-        vertical_counter <= 9'd248;
-
-        o_VBLANK_n <= 1'b0;
-        o_VBLANKH_n <= 1'b0;
-        o_FRAMEPARITY <= 1'b0;
-        __REF_DMA_n <= 1'b1;
     end
     else
-    begin //count up
+    begin
         if(!i_EMU_CLK6MPCEN_n)
         begin
             if(horizontal_counter < 9'd511) //h count up
             begin
-                if(horizontal_counter == 9'd175) //v count up
-                begin
-                    if(vertical_counter < 9'd511)
-                    begin
-                        //VBLANK
-                        if(vertical_counter > 9'd494 || vertical_counter < 9'd271)
-                        begin
-                            o_VBLANK_n <= 1'b0;
-                        end
-                        else
-                        begin
-                            o_VBLANK_n <= 1'b1;
-                        end
-                        
-                        //VBLANK**
-                        if(vertical_counter > 9'd247 && vertical_counter < 9'd271)
-                        begin
-                            o_VBLANKH_n <= 1'b0;
-                        end
-                        else
-                        begin
-                            o_VBLANKH_n <= 1'b1;
-                        end
-                        
-                        //256V
-                        if(vertical_counter == 9'd495) //flip parity value
-                        begin
-                            o_FRAMEPARITY <= ~o_FRAMEPARITY;
-                        end
-
-                        //DMA
-                        if(vertical_counter > 9'd478 && vertical_counter < 9'd495)
-                        begin
-                            __REF_DMA_n <= 1'b0;
-                        end
-                        else
-                        begin
-                            __REF_DMA_n <= 1'b1;
-                        end
-
-                        vertical_counter <= vertical_counter + 9'd1;
-                    end
-                    else
-                    begin
-                        vertical_counter <= 9'd248;
-                    end
-                end
-
-                if(horizontal_counter > 9'd174 && horizontal_counter < 9'd207)
-                begin
-                    o_VCLK <= 1'b1;
-                end
-                else
-                begin
-                    o_VCLK <= 1'b0;
-                end
-
                 horizontal_counter <= horizontal_counter + 9'd1;
             end
-            else    //h loop
+            else //h loop
             begin
                 horizontal_counter <= 9'd128;
             end
@@ -205,12 +147,262 @@ begin
 end
 
 
+//
+//  SYNC TIP GENERATOR
+//
+
+reg             narrow_hsync_on_vsync = 1'b0; //appears on just before vsync period of even frame
+reg             wide_hsync_on_vsync = 1'b0; //appears on vsync period
+reg             hsync = 1'b0; //normal vclk
+
+reg             narrow_hsync_on_vsync_clken_n = 1'b1;
+reg             hsync_clken_n = 1'b1;
+
+always @(posedge i_EMU_MCLK)
+begin
+    if(!i_MRST_n) //asynchronous reset
+    begin
+        narrow_hsync_on_vsync <= 1'b0;
+        wide_hsync_on_vsync <= 1'b0;
+        hsync <= 1'b0;
+    end
+    else
+    begin
+        if(!i_EMU_CLK6MPCEN_n)
+        begin
+            //narrow hsync on vsync
+            if(horizontal_counter == 9'd175)
+            begin
+                narrow_hsync_on_vsync <= 1'b1;
+            end
+            else if(horizontal_counter == 9'd191)
+            begin
+                narrow_hsync_on_vsync <= 1'b0;
+            end
+
+            else if(horizontal_counter == 9'd367)
+            begin
+                narrow_hsync_on_vsync <= 1'b1;
+            end
+            else if(horizontal_counter == 9'd383)
+            begin
+                narrow_hsync_on_vsync <= 1'b0;
+            end
+
+            else
+            begin
+                narrow_hsync_on_vsync <= narrow_hsync_on_vsync;
+            end
+
+
+            //wide hysnc on vsync
+            if(horizontal_counter == 9'd143)
+            begin
+                wide_hsync_on_vsync <= 1'b1;
+            end
+            else if(horizontal_counter == 9'd175)
+            begin
+                wide_hsync_on_vsync <= 1'b0;
+            end
+
+            else if(horizontal_counter == 9'd335)
+            begin
+                wide_hsync_on_vsync <= 1'b1;
+            end
+            else if(horizontal_counter == 9'd367)
+            begin
+                wide_hsync_on_vsync <= 1'b0;
+            end
+
+            else
+            begin
+                wide_hsync_on_vsync <= wide_hsync_on_vsync;
+            end
+
+
+            //hysnc
+            if(horizontal_counter == 9'd175)
+            begin
+                hsync <= 1'b1;
+            end
+            else if(horizontal_counter == 9'd207)
+            begin
+                hsync <= 1'b0;
+            end
+
+            else
+            begin
+                hsync <= hsync;
+            end
+
+
+
+            //narrow hsync on vsync clken
+            if(horizontal_counter == 9'd366)
+            begin
+                narrow_hsync_on_vsync_clken_n <= 1'b0;
+            end
+            else
+            begin
+                narrow_hsync_on_vsync_clken_n <= 1'b1;
+            end
+
+            //hsync clken
+            if(horizontal_counter == 9'd174)
+            begin
+                hsync_clken_n <= 1'b0;
+            end
+            else
+            begin
+                hsync_clken_n <= 1'b1;
+            end
+        end
+    end
+end
+
+
+//
+//  VCLK GENERATOR
+//
+
+//VCLK output
+always @(*)
+begin
+    if(o_FRAMEPARITY == 1'b0) //EVEN FRAME
+    begin
+        if(vertical_counter > 9'd503 || vertical_counter < 9'd266)
+        begin
+            o_VCLK <= narrow_hsync_on_vsync & o_HBLANK_n;
+        end
+        else
+        begin
+            o_VCLK <= hsync;
+        end
+    end
+    else //ODD FRAME
+    begin
+        o_VCLK <= hsync;
+    end
+end
+
+
+//VCLK clken
+reg                 vclk_clken_n;
+
+always @(*)
+begin
+    if(o_FRAMEPARITY == 1'b0) //EVEN FRAME
+    begin
+        if(vertical_counter > 9'd502 || vertical_counter < 9'd265) //not 503 and 266!! clken should be asserted before a posedge of VCLK, so it have to go 1V faster
+        begin
+            vclk_clken_n <= narrow_hsync_on_vsync_clken_n;
+        end
+        else
+        begin
+            vclk_clken_n <= hsync_clken_n;
+        end
+    end
+    else //ODD FRAME
+    begin
+        vclk_clken_n <= hsync_clken_n;
+    end
+end
+
+
+//
+//  VCOUNTER
+//
+
+always @(posedge i_EMU_MCLK) //do not use asynchronous VCLK
+begin
+    if(!i_MRST_n) //asynchronous reset
+    begin
+        vertical_counter <= 9'd248;
+    end
+    else
+    begin
+        if(!i_EMU_CLK6MPCEN_n)
+        begin
+            if(!vclk_clken_n)
+            begin
+                if(vertical_counter < 9'd511)
+                begin
+                    //VBLANK
+                    if(vertical_counter > 9'd494 || vertical_counter < 9'd271)
+                    begin
+                        o_VBLANK_n <= 1'b0;
+                    end
+                    else
+                    begin
+                        o_VBLANK_n <= 1'b1;
+                    end
+                    
+                    //VBLANK**
+                    if(vertical_counter > 9'd494 || vertical_counter < 9'd271)
+                    begin
+                        o_VBLANKH_n <= 1'b0;
+                    end
+                    else
+                    begin
+                        o_VBLANKH_n <= 1'b1; //VBLANK** goes high when vcounter = 248
+                    end
+                    
+                    //256V
+                    if(vertical_counter == 9'd495) //flip parity value
+                    begin
+                        o_FRAMEPARITY <= ~o_FRAMEPARITY;
+                    end
+
+                    //DMA
+                    if(vertical_counter > 9'd478 && vertical_counter < 9'd495)
+                    begin
+                        __REF_DMA_n <= 1'b0;
+                    end
+                    else
+                    begin
+                        __REF_DMA_n <= 1'b1;
+                    end
+
+                    vertical_counter <= vertical_counter + 9'd1;
+                end
+                else
+                begin
+                    vertical_counter <= 9'd248;
+
+                    o_VBLANKH_n <= 1'b1;
+                end
+            end
+        end
+    end
+end
+
+
+
 
 ///////////////////////////////////////////////////////////
 //////  SYNC GENERATOR
 ////
 
 assign o_VSYNC_n = vertical_counter[8];
-assign o_CSYNC_n = o_VSYNC_n & ~o_VCLK;
+
+always @(*)
+begin
+    if(vertical_counter > 9'd503 || vertical_counter < 9'd266)
+    begin
+        if(vertical_counter > 9'd247 && vertical_counter < 9'd256)
+        begin
+            o_CSYNC <= o_VSYNC_n ^ wide_hsync_on_vsync;
+        end
+        else
+        begin
+            o_CSYNC <= o_VSYNC_n ^ narrow_hsync_on_vsync;
+        end
+    end
+    else
+    begin
+        o_CSYNC <= o_VSYNC_n ^ hsync;
+    end
+end
+
 
 endmodule
