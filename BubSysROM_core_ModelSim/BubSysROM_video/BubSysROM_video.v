@@ -170,6 +170,11 @@ wire            VCLK;
 
 wire            CSYNC_n;
 
+wire            DMA_n = ~&{ABS_128V, ABS_64V, ABS_32V, ~ABS_16V}; //16C NAND; vcounter 480-495
+wire            ORINC;
+reg     [7:0]   OBJ;
+wire            objcntr_tick = ORINC & (~&{OBJ[7:4]});
+
 //declare K005292 core: this core does not have LS393 sprite code up counter
 K005292 K005292_main
 (
@@ -232,6 +237,31 @@ K005292 K005292_main
     .__REF_HCOUNTER             (__REF_HCOUNTER             ),
     .__REF_VCOUNTER             (__REF_VCOUNTER             )
 );
+
+//async shit in K005292
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MPCEN_n)
+    begin
+        if(ABS_1H == 1'b0) //posedge of 1H
+        begin
+            if(DMA_n == 1'b0)
+            begin
+                OBJ <= 8'd0;
+            end
+            else
+            begin
+                if(objcntr_tick == 1'b0)
+                begin
+                    OBJ <= OBJ + 8'd1;
+                end
+            end
+        end        
+    end
+end
+
+
+
 
 
 //
@@ -725,8 +755,6 @@ LOGIC373 OBJRAM_CPULATCH
 //  SPRITE DMA SECTION
 //
 
-wire            dma_n = ~&{ABS_128V, ABS_64V, ABS_32V, ~ABS_16V}; //16C NAND; vcounter 480-495
-
 //19G LS273
 reg     [7:0]   obj_priority;
 always @(posedge i_EMU_MCLK)
@@ -754,14 +782,15 @@ begin
 end
 
 //make objtable address
+wire    [2:0]   ORA;
 wire    [10:0]  objtable_addr;
-assign  objtable_addr = (dma_n == 1'b0) ? 
+assign  objtable_addr = (DMA_n == 1'b0) ? 
                             {obj_priority, ABS_8H, ABS_4H, ABS_2H} :
-                            {11'd0};
+                            {OBJ, ORA};
 
 
 //make objtable_wr
-wire            objtable_wr = ~(ABS_1H & ~dma_n);
+wire            objtable_wr = ~(ABS_1H & ~DMA_n);
 
 //declare objtable ram
 wire    [7:0]   objtable_dout;
@@ -774,6 +803,59 @@ SRAM2k8 OBJTABLE
     .i_WR_n                     (objtable_wr                ),
     .i_RD_n                     (1'b0                       )
 );
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////
+//////  K005295
+////
+
+//declare K005291 core: requires clock
+K005295 K005295_main
+(
+    .i_EMU_MCLK                 (i_EMU_MCLK                 ),
+    .i_EMU_CLK6MPCEN_n          (o_EMU_CLK6MPCEN_n          ),
+
+    .i_DMA_n                    (DMA_n                      ),
+    .i_VBLANKH_n                (VBLANKH_n                  ),
+    .i_VBLANK_n                 (VBLANK_n                   ),
+    .i_HBLANK_n                 (HBLANK_n                   ),
+    .i_ABS_4H                   (ABS_4H                     ),
+    .i_ABS_2H                   (ABS_2H                     ),
+    .i_ABS_1H                   (ABS_1H                     ),
+    .i_CHAMPX                   (CHAMPX                     ),
+    .i_OBJWR                    (                           ),
+
+    .i_FLIP                     (i_HFLIP                    ),
+
+    .i_OBJDATA                  (objtable_dout              ),
+    .o_ORA                      (ORA                        ),
+
+    .o_CAS                      (                           ),
+    .o_FA                       (                           ),
+    .o_XA7                      (                           ),
+    .o_FB                       (                           ),
+    .o_XB7                      (                           ),
+
+    .o_OBJHL                    (                           ),
+    .o_CHAOV                    (                           ),
+    .o_ORINC                    (ORINC                      ),
+    .o_WRTIME2                  (                           ),
+    .o_COLORLATCH_n             (                           ),
+    .o_XPOS_D0                  (                           ),
+    .o_PIXELLATCH_WAIT_n        (                           ),
+    .o_SIZELATCH_D2             (                           ),
+    .o_PIXELSEL                 (                           ),
+    .o_OCA                      (                           )
+);
+
+
+
 
 
 
