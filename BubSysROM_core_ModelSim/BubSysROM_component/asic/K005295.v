@@ -46,7 +46,7 @@ module K005295
     output  wire            o_COLORLATCH_n,
     output  wire            o_XPOS_D0,
     output  reg             o_PIXELLATCH_WAIT_n,
-    output  wire            o_SIZELATCH_D2,
+    output  wire            o_LATCH_A_D2,
     output  wire    [2:0]   o_PIXELSEL,
 
     //CHARRAM address
@@ -154,7 +154,7 @@ reg     [7:0]   LATCH_D; //OBJRAM BYTE 8: sprite code MSBs[7:6], vflip[5], obj p
 reg     [7:0]   LATCH_E; //OBJRAM BYTE A: xpos LSBs[7:0]
 
 assign  o_XPOS_D0 = LATCH_E[0];
-assign  o_SIZELATCH_D2 = LATCH_A[2];
+assign  o_LATCH_A_D2 = LATCH_A[2];
 
 //LATCH_A
 always @(posedge i_EMU_MCLK)
@@ -423,21 +423,11 @@ end
 
 
 
+
+
 ///////////////////////////////////////////////////////////
 //////  DRAWING STATUS FLAGS
 ////
-
-/*
-    DEFINE CASE MACROS
-
-    {hline_complete, tileline_complete}
-    00 = KEEP_DRAWING:     타일라인도, 스프라이트 한 라인도 끝나지 않음
-    01 = END_OF_TILELINE:  H어큐뮬레이터 캐리가 1이 됨
-    1X = END_OF_HLINE:     H어큐뮬레이터 캐리가 1이면서 스프라이트의 한 라인이 끝남
-                           또는 가로로 화면을 벗어남
-*/
-
-
 
 wire            x_out_of_screen = ~(~oddbuffer_xpos_counter[7] | oddbuffer_xpos_counter[6]); //0-255 or 384-511
 wire            y_out_of_screen = (buffer_ypos_counter == 8'd255) ? 1'b1 : 1'b0;
@@ -449,7 +439,7 @@ wire            end_of_last_hline_n = ~(~(vtile_complete_n) | y_out_of_screen);
 
 wire    [2:0]   drawing_status = {end_of_last_hline_n, end_of_hline, end_of_tileline};
 localparam KEEP_DRAWING     = 3'b100;
-localparam END_OF_TILELINE  = 2'b01;
+localparam END_OF_TILELINE  = 2'b01; //3'bX01 will not work
 localparam END_OF_HLINE     = 3'b111;
 localparam END_OF_SPRITE    = 3'b011;
 
@@ -811,7 +801,7 @@ begin
 
             ypos_cnt_n <= 1'b1;
 
-            pixellatch_wait_n <= 1'b1;
+            pixellatch_wait_n <= 1'b0;
         end
         ATTR_LATCHING_S1: begin
             if(LATCH_F_2H_NCLKD_en_n == 1'b0 && PIXEL3_n == 1'b0)
@@ -826,7 +816,7 @@ begin
 
                 ypos_cnt_n <= 1'b1;
 
-                pixellatch_wait_n <= 1'b1;
+                pixellatch_wait_n <= 1'b0;
             end
             else
             begin
@@ -840,7 +830,7 @@ begin
 
                 ypos_cnt_n <= 1'b1;
 
-                pixellatch_wait_n <= 1'b1;
+                pixellatch_wait_n <= 1'b0;
             end    
         end
 

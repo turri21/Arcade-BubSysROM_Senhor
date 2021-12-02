@@ -27,6 +27,7 @@ add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/objtable
 add wave -noupdate -radix unsigned /BubSysROM_top_tb/main/video_main/K005295_main/o_ORA
 add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/o_WRTIME2
 add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/o_PIXELLATCH_WAIT_n
+add wave -noupdate -radix unsigned /BubSysROM_top_tb/main/video_main/K005295_main/o_PIXELSEL
 add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/hsize_parity
 add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/hzoom_rst_n
 add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/hzoom_cnt_n
@@ -41,7 +42,7 @@ add wave -noupdate -radix binary /BubSysROM_top_tb/main/video_main/K005295_main/
 add wave -noupdate -radix binary /BubSysROM_top_tb/main/video_main/K005295_main/vzoom_nextval
 add wave -noupdate -radix unsigned /BubSysROM_top_tb/main/video_main/K005295_main/vzoom_vtile_num
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {6411670 ns} 0}
+WaveRestoreCursors {{Cursor 1} {6368590 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -57,4 +58,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {6330360 ns} {6458360 ns}
+WaveRestoreZoom {6171210 ns} {6556330 ns}
