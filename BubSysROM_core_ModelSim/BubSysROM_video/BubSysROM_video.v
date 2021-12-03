@@ -171,9 +171,7 @@ wire            VCLK;
 wire            CSYNC_n;
 
 wire            DMA_n = ~&{ABS_128V, ABS_64V, ABS_32V, ~ABS_16V}; //16C NAND; vcounter 480-495
-wire            ORINC;
-reg     [7:0]   OBJ;
-wire            objcntr_tick = ORINC & (~&{OBJ[7:4]});
+
 
 //declare K005292 core: this core does not have LS393 sprite code up counter
 K005292 K005292_main
@@ -238,7 +236,11 @@ K005292 K005292_main
     .__REF_VCOUNTER             (__REF_VCOUNTER             )
 );
 
-//async shit in K005292
+//fully asynchronous shit in K005292(modded)
+wire            ORINC;
+reg     [7:0]   OBJ;
+wire            objcntr_tick = ORINC | (&{OBJ[7:4]});
+
 always @(posedge i_EMU_MCLK)
 begin
     if(!o_EMU_CLK6MPCEN_n)
@@ -259,8 +261,6 @@ begin
         end        
     end
 end
-
-
 
 
 
@@ -815,7 +815,7 @@ SRAM2k8 OBJTABLE
 //////  K005295
 ////
 
-//declare K005291 core: requires clock
+//declare K005295 core
 K005295 K005295_main
 (
     .i_EMU_MCLK                 (i_EMU_MCLK                 ),
@@ -828,7 +828,7 @@ K005295 K005295_main
     .i_ABS_4H                   (ABS_4H                     ),
     .i_ABS_2H                   (ABS_2H                     ),
     .i_ABS_1H                   (ABS_1H                     ),
-    .i_CHAMPX                   (CHAMPX                     ),
+    .i_CHAMPX                   (CHAMPX2                    ),
     .i_OBJWR                    (                           ),
 
     .i_FLIP                     (i_HFLIP                    ),
@@ -842,14 +842,14 @@ K005295 K005295_main
     .o_FB                       (                           ),
     .o_XB7                      (                           ),
 
-    .o_OBJHL                    (                           ),
+    .i_OBJHL                    (                           ),
     .o_CHAOV                    (                           ),
     .o_ORINC                    (ORINC                      ),
     .o_WRTIME2                  (                           ),
     .o_COLORLATCH_n             (                           ),
     .o_XPOS_D0                  (                           ),
     .o_PIXELLATCH_WAIT_n        (                           ),
-    .o_SIZELATCH_D2             (                           ),
+    .o_LATCH_A_D2               (                           ),
     .o_PIXELSEL                 (                           ),
     .o_OCA                      (                           )
 );

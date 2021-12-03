@@ -37,7 +37,7 @@ module K005295
     output  reg             o_XB7,
 
     //peripheral control signals
-    output  reg             o_OBJHL,
+    input   wire            i_OBJHL,
     output  reg             o_CHAOV,
     output  wire            o_ORINC,
 
@@ -59,7 +59,8 @@ module K005295
 //////  GLOBAL SIGNALS
 ////
 
-reg             WRTIME2;
+reg             __ENABLE_DOUBLE_HEIGHT_MODE = 1'b0;
+
 reg             hsize_parity = 1'b0;
 reg             pixellatch_wait_n;
 
@@ -117,7 +118,9 @@ wire            LATCH_F_en_n; //OBJRAM BYTE C: ypos[7:0]
 
 assign  o_COLORLATCH_n = LATCH_D_en_n;
 
-//if /A, ORA = 2, if /B ORA = 3, ... ,if /F, ORA = 7
+//if /A ORA = 2, if /B ORA = 3, ... ,if /F, ORA = 7
+//MUDA MUDA MUDA MUDA MUDA MUDA
+//ORA ORA ORA ORA ORA ORA ORA
 assign  o_ORA[2] = ~&{                                LATCH_C_en_n,   LATCH_D_en_n,   LATCH_E_en_n,   LATCH_F_en_n};
 assign  o_ORA[1] = ~&{LATCH_A_en_n,   LATCH_B_en_n,                                   LATCH_E_en_n,   LATCH_F_en_n};
 assign  o_ORA[0] = ~&{                LATCH_B_en_n,                   LATCH_D_en_n,                   LATCH_F_en_n};
@@ -163,7 +166,7 @@ begin
     begin
         if(!LATCH_A_en_n)
         begin
-            LATCH_A <= i_OBJDATA;
+            LATCH_A <= i_OBJDATA & {6'b1111_11, __ENABLE_DOUBLE_HEIGHT_MODE, 1'b1};
         end
 
         if(!LATCH_B_en_n)
@@ -198,10 +201,7 @@ reg             hzoom_cnt_n;
 reg             hzoom_rst_n;
 reg     [9:0]   hzoom_acc = 10'd0;
 wire    [10:0]  hzoom_nextval = hzoom_acc + {LATCH_A[7:6], LATCH_B};
-reg     [2:0]   hzoom_tileline_num;
-
-assign  o_PIXELSEL = hzoom_acc[9:7] ^ {3{LATCH_A[0]}}; //OBJ_HFLIP
-
+reg     [2:0]   hzoom_tileline_cntr;
 
 always @(posedge i_EMU_MCLK)
 begin
@@ -210,7 +210,7 @@ begin
         if(!hzoom_rst_n)
         begin
             hzoom_acc <= 10'd0;
-            hzoom_tileline_num <= 3'd0;
+            hzoom_tileline_cntr <= 3'd0;
         end
         else
         begin
@@ -219,7 +219,7 @@ begin
                 hzoom_acc <= hzoom_nextval[9:0];
                 if(hzoom_nextval[10] == 1'b1)
                 begin
-                    hzoom_tileline_num <= hzoom_tileline_num + 3'd1;
+                    hzoom_tileline_cntr <= hzoom_tileline_cntr + 3'd1;
                 end
             end
         end
@@ -243,9 +243,9 @@ end
 
 reg             hline_complete;
 wire            tileline0_complete = hzoom_nextval[10];
-wire            tileline1_complete = &{hzoom_nextval[10], hzoom_tileline_num[0]};
-wire            tileline3_complete = &{hzoom_nextval[10], hzoom_tileline_num[0], hzoom_tileline_num[1]};
-wire            tileline7_complete = &{hzoom_nextval[10], hzoom_tileline_num[0], hzoom_tileline_num[1], hzoom_tileline_num[2]};
+wire            tileline1_complete = &{hzoom_nextval[10], hzoom_tileline_cntr[0]};
+wire            tileline3_complete = &{hzoom_nextval[10], hzoom_tileline_cntr[0], hzoom_tileline_cntr[1]};
+wire            tileline7_complete = &{hzoom_nextval[10], hzoom_tileline_cntr[0], hzoom_tileline_cntr[1], hzoom_tileline_cntr[2]};
 
 always @(*)
 begin
@@ -273,8 +273,7 @@ reg             vzoom_cnt_n;
 reg             vzoom_rst_n;
 reg     [9:0]   vzoom_acc = 10'd0;
 wire    [10:0]  vzoom_nextval = vzoom_acc + {LATCH_A[7:6], LATCH_B};
-wire    [2:0]   vzoom_hline_num = vzoom_acc[9:7];
-reg     [3:0]   vzoom_vtile_num;
+reg     [3:0]   vzoom_vtile_cntr;
 
 always @(posedge i_EMU_MCLK)
 begin
@@ -283,7 +282,7 @@ begin
         if(!vzoom_rst_n)
         begin
             vzoom_acc <= 10'd0;
-            vzoom_vtile_num <= 4'd0;
+            vzoom_vtile_cntr <= 4'd0;
         end
         else
         begin
@@ -292,7 +291,7 @@ begin
                 vzoom_acc <= vzoom_nextval[9:0];
                 if(vzoom_nextval[10] == 1'b1)
                 begin
-                    vzoom_vtile_num <= vzoom_vtile_num + 4'd1;
+                    vzoom_vtile_cntr <= vzoom_vtile_cntr + 4'd1;
                 end
             end
         end
@@ -317,10 +316,10 @@ end
 
 reg             vtile_complete_n;
 wire            vtile0_complete_n  = ~vzoom_nextval[10];
-wire            vtile1_complete_n  = ~&{vzoom_nextval[10], vzoom_vtile_num[0]};
-wire            vtile3_complete_n  = ~&{vzoom_nextval[10], vzoom_vtile_num[0], vzoom_vtile_num[1]};
-wire            vtile7_complete_n  = ~&{vzoom_nextval[10], vzoom_vtile_num[0], vzoom_vtile_num[1], vzoom_vtile_num[2]};
-wire            vtile15_complete_n = ~&{vzoom_nextval[10], vzoom_vtile_num[0], vzoom_vtile_num[1], vzoom_vtile_num[2], vzoom_vtile_num[3]};
+wire            vtile1_complete_n  = ~&{vzoom_nextval[10], vzoom_vtile_cntr[0]};
+wire            vtile3_complete_n  = ~&{vzoom_nextval[10], vzoom_vtile_cntr[0], vzoom_vtile_cntr[1]};
+wire            vtile7_complete_n  = ~&{vzoom_nextval[10], vzoom_vtile_cntr[0], vzoom_vtile_cntr[1], vzoom_vtile_cntr[2]};
+wire            vtile15_complete_n = ~&{vzoom_nextval[10], vzoom_vtile_cntr[0], vzoom_vtile_cntr[1], vzoom_vtile_cntr[2], vzoom_vtile_cntr[3]};
 
 always @(*)
 begin
@@ -423,8 +422,6 @@ end
 
 
 
-
-
 ///////////////////////////////////////////////////////////
 //////  DRAWING STATUS FLAGS
 ////
@@ -437,11 +434,6 @@ wire            end_of_hline = hline_complete | x_out_of_screen;
 //wire            end_of_last_hline_n = ~(~(vtile_complete_n | vzoom_cnt_n) | y_out_of_screen);
 wire            end_of_last_hline_n = ~(~(vtile_complete_n) | y_out_of_screen);
 
-wire    [2:0]   drawing_status = {end_of_last_hline_n, end_of_hline, end_of_tileline};
-localparam KEEP_DRAWING     = 3'b100;
-localparam END_OF_TILELINE  = 2'b01; //3'bX01 will not work
-localparam END_OF_HLINE     = 3'b111;
-localparam END_OF_SPRITE    = 3'b011;
 
 
 
@@ -452,16 +444,27 @@ localparam END_OF_SPRITE    = 3'b011;
 //////  SPRITE ENGINE MegaPAL
 ////
 
-
 // DIRECT REPLACEMENT OF MegaPAL IMPLEMENTATION
+
+/*
+    [Comb] STATUS FLAGS
+*/
+
+wire    [2:0]   drawing_status = {end_of_last_hline_n, end_of_hline, end_of_tileline};
+
+localparam KEEP_DRAWING     = 3'b100;
+localparam END_OF_TILELINE  = 2'b01; //3'bX01 will not work
+localparam END_OF_HLINE     = 3'b111;
+localparam END_OF_SPRITE    = 3'b011;
+
+
 
 /*
     [4H CLK] FSM SUSPEND AND RESUME
 */
 
 reg     [1:0]   FSM_SUSPEND_DLY;
-wire            FSM_SUSPEND = (i_HBLANK_n & i_VBLANKH_n) | ~i_DMA_n;
-wire            FSM_RESUME = ~FSM_SUSPEND_DLY[1];
+wire            FSM_SUSPEND = ((i_HBLANK_n & i_VBLANKH_n) | FSM_SUSPEND_DLY[1]) | ~DMA_4H_CLKD_n;
 
 always @(posedge i_EMU_MCLK)
 begin
@@ -469,11 +472,30 @@ begin
     begin
         if({i_ABS_4H, i_ABS_2H, i_ABS_1H} == 3'd3)
         begin
-            FSM_SUSPEND_DLY[0] <= FSM_SUSPEND;
+            FSM_SUSPEND_DLY[0] <= (i_HBLANK_n & i_VBLANKH_n);
             FSM_SUSPEND_DLY[1] <= FSM_SUSPEND_DLY[0];
         end
     end
 end
+
+
+
+/*
+    [6M CLK] CHA O/V
+*/
+
+always @(posedge i_EMU_MCLK)
+begin
+    if(!i_EMU_CLK6MPCEN_n)
+    begin
+        if(PIXEL3_n == 1'b0)
+        begin
+            o_CHAOV <= FSM_SUSPEND;
+        end
+    end
+end
+
+
 
 /*
     [4H CLK] FOR ATTRIBUTE FETCHING END DETECTION
@@ -493,7 +515,27 @@ end
 
 
 
+/*
+    [6M CLK] HSIZE PARITY
+*/
 
+always @(posedge i_EMU_MCLK)
+begin
+    if(!i_EMU_CLK6MPCEN_n)
+    begin
+        if(hzoom_rst_n == 1'b0) //preload, new hline
+        begin
+            hsize_parity <= 1'b1;
+        end
+        else
+        begin
+            if(hzoom_cnt_n == 1'b0)
+            begin
+                hsize_parity <= ~hsize_parity;
+            end
+        end
+    end
+end
 
 
 
@@ -571,7 +613,14 @@ begin
                 begin
                     if(LATCH_F_2H_NCLKD_en_n == 1'b0)
                     begin
-                        sprite_engine_state <= HCOUNT_S0;
+                        if(FSM_SUSPEND == 1'b0) //keep going
+                        begin
+                            sprite_engine_state <= HCOUNT_S0;
+                        end
+                        else //if not, go suspend_s0
+                        begin
+                            sprite_engine_state <= SUSPEND_S0;
+                        end
                     end
                     else
                     begin
@@ -746,7 +795,7 @@ begin
                     begin
                         sprite_engine_state <= ATTR_LATCHING_S0; //new vblank
                     end
-                    else if(FSM_RESUME == 1'b1) //return to HCOUNT_S0  or fetch new attributes
+                    else if(FSM_SUSPEND == 1'b0) //return to HCOUNT_S0  or fetch new attributes
                     begin
                         if(drawing_status == END_OF_SPRITE)
                         begin
@@ -1320,27 +1369,10 @@ begin
 end
 
 
+
 /*
     [6M CLK] WRTIME DELAY
 */
-
-always @(posedge i_EMU_MCLK)
-begin
-    if(!i_EMU_CLK6MPCEN_n)
-    begin
-        if(hzoom_rst_n == 1'b0) //preload, new hline
-        begin
-            hsize_parity <= 1'b1;
-        end
-        else
-        begin
-            if(hzoom_cnt_n == 1'b0)
-            begin
-                hsize_parity <= ~hsize_parity;
-            end
-        end
-    end
-end
 
 reg             wrtime1;
 wire            oddsize_wrtime0 = (sprite_engine_state == ODDSIZE_S0 && PIXEL3_n == 1'b0) ? 1'b1 : 1'b0;
@@ -1354,6 +1386,7 @@ begin
         o_WRTIME2 <= wrtime1;
     end
 end
+
 
 
 /*
@@ -1372,6 +1405,47 @@ end
 
 
 
+
+///////////////////////////////////////////////////////////
+//////  PIXEL SELECT(005294), LINE SELECT, TILE SELECT
+////
+
+//005294 PIXEL SELECT
+assign  o_PIXELSEL = hzoom_acc[9:7] ^ {3{LATCH_A[0]}}; //OBJ_HFLIP
+
+//CHARRAM ADDRESS
+wire    [2:0]   TILELINE_ADDR = hzoom_tileline_cntr ^ {3{LATCH_A[0]}};
+wire    [2:0]   HLINE_ADDR = vzoom_acc[9:7] ^ {3{LATCH_D[5]}};
+wire    [3:0]   VTILE_ADDR = vzoom_vtile_cntr ^ {4{LATCH_D[5]}};
+reg     [13:0]  CHARRAM_ADDR; //unmultiplexed
+assign  o_OCA = (i_CHAMPX == 1'b0) ? CHARRAM_ADDR[7:0] : {1'b1, CHARRAM_ADDR[10:8], 1'b1}; //RAS : CAS
+
+reg     [15:0]  BUF_ADDR; //unmultiplexed
+
+
+always @(*)
+begin
+    case({LATCH_A[1], LATCH_A[5:3]})
+        //                     |-------(OBJ CODE)-------| 
+        4'h0: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:3], VTILE_ADDR[1:0], HLINE_ADDR[2:0], TILELINE_ADDR[1:0]}; //32*32    4 vetrical tiles
+        4'h1: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:2], VTILE_ADDR[1:0], HLINE_ADDR[2:0], TILELINE_ADDR[0:0]}; //16*32    4 vetrical tiles
+        4'h2: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:3], VTILE_ADDR[0:0], HLINE_ADDR[2:0], TILELINE_ADDR[1:0]}; //32*16    2 vetrical tiles
+        4'h3: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:5], VTILE_ADDR[2:0], HLINE_ADDR[2:0], TILELINE_ADDR[2:0]}; //64*64    8 vetrical tiles
+        4'h4: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:0],            1'b0, HLINE_ADDR[2:0]                    }; //8*8      1 vetrical tiles
+        4'h5: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:0],                  HLINE_ADDR[2:0], TILELINE_ADDR[0:0]}; //16*8     1 vetrical tiles
+        4'h6: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:0], VTILE_ADDR[0:0], HLINE_ADDR[2:0]                    }; //8*16     2 vetrical tiles
+        4'h7: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:1], VTILE_ADDR[0:0], HLINE_ADDR[2:0], TILELINE_ADDR[0:0]}; //16*16    2 vetrical tiles
+
+        4'h8: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:4], VTILE_ADDR[2:0], HLINE_ADDR[2:0], TILELINE_ADDR[1:0]}; //32*64    8 vetrical tiles
+        4'h9: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:3], VTILE_ADDR[2:0], HLINE_ADDR[2:0], TILELINE_ADDR[0:0]}; //16*64    8 vetrical tiles
+        4'hA: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:4], VTILE_ADDR[1:0], HLINE_ADDR[2:0], TILELINE_ADDR[1:0]}; //32*32    4 vetrical tiles
+        4'hB: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:6], VTILE_ADDR[3:0], HLINE_ADDR[2:0], TILELINE_ADDR[2:0]}; //64*128   16 vetrical tiles
+        4'hC: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:0], VTILE_ADDR[0:0], HLINE_ADDR[2:0]                    }; //8*16     1 vetrical tiles
+        4'hD: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:1], VTILE_ADDR[0:0], HLINE_ADDR[2:0], TILELINE_ADDR[0:0]}; //16*16    1 vetrical tiles
+        4'hE: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:1], VTILE_ADDR[1:0], HLINE_ADDR[2:0]                    }; //8*32     2 vetrical tiles
+        4'hF: CHARRAM_ADDR <= {LATCH_D[7:6], LATCH_C[7:2], VTILE_ADDR[1:0], HLINE_ADDR[2:0], TILELINE_ADDR[0:0]}; //16*32    2 vetrical tiles
+    endcase
+end
 
 
 
