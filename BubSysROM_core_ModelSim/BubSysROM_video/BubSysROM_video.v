@@ -353,7 +353,7 @@ end
 //
 
 //timing singals
-wire            OBJRW;  //switches mux between active display+buffer clear/005295 write
+wire            OBJWR;  //switches mux between active display+buffer clear/005295 write
 wire            OBJCLR; //fix mux output as 0 when clearing the buffer by writing 0s
 
 //19H LS74A
@@ -415,7 +415,7 @@ begin
     end
 end
 
-assign  OBJRW = DFF_19H_B;
+assign  OBJWR = DFF_19H_B;
 assign  OBJCLR = ~DFF_19H_B;
 assign  o_BLK = DFF_17A_A;
 
@@ -829,7 +829,7 @@ K005295 K005295_main
     .i_ABS_2H                   (ABS_2H                     ),
     .i_ABS_1H                   (ABS_1H                     ),
     .i_CHAMPX                   (CHAMPX2                    ),
-    .i_OBJWR                    (                           ),
+    .i_OBJWR                    (OBJWR                      ),
 
     .i_FLIP                     (i_HFLIP                    ),
 

@@ -15,9 +15,11 @@ module DRAM16k4_charram_px5
 );
 
 reg     [3:0]   RAM16k4 [16383:0];
-reg     [7:0]   __ROW_ADDR;
-reg     [5:0]   __COL_ADDR;
-wire    [13:0]  __ADDR = {__COL_ADDR, __ROW_ADDR};
+reg             prev_ras;
+reg             prev_cas;
+reg     [7:0]   ROW_ADDR;
+reg     [5:0]   COL_ADDR;
+wire    [13:0]  ADDR = {COL_ADDR, ROW_ADDR};
 
 /*
     MCLK                                    1 1
@@ -32,21 +34,24 @@ wire    [13:0]  __ADDR = {__COL_ADDR, __ROW_ADDR};
                                        >column
                                            >launch
                                                >CPU acquisition
-    CHAMPX1 ¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    CHAMPX1 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_______|¯¯¯¯¯¯¯¯¯¯¯¯
     /RAS    ___________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|________________ 
     /CAS    _______________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|_______________|¯¯¯¯¯¯¯|____________
 */
 
 always @(posedge i_MCLK)
 begin
-    if(i_RAS_n == 1'b0 && i_CAS_n == 1'b1)
+    prev_ras <= i_RAS_n;
+    prev_cas <= i_CAS_n;
+
+    if(i_RAS_n == 1'b0 && prev_ras == 1'b1)
     begin
-        __ROW_ADDR <= i_ADDR;
+        ROW_ADDR <= i_ADDR;
     end
 
-    if(i_CAS_n == 1'b0)
+    if(i_CAS_n == 1'b0 && prev_cas == 1'b1)
     begin
-        __COL_ADDR <= i_ADDR[6:1];
+        COL_ADDR <= i_ADDR[6:1];
     end
 end
 
@@ -55,7 +60,7 @@ always @(posedge i_MCLK)
 begin
     if(i_WR_n == 1'b0)
     begin
-        RAM16k4[__ADDR] <= i_DIN;
+        RAM16k4[ADDR] <= i_DIN;
     end
 end
 
@@ -63,7 +68,7 @@ always @(posedge i_MCLK) //read
 begin
     if(i_RD_n == 1'b0)
     begin
-        o_DOUT <= RAM16k4[__ADDR];
+        o_DOUT <= RAM16k4[ADDR];
     end
 end
 
