@@ -815,6 +815,9 @@ SRAM2k8 OBJTABLE
 //////  K005295
 ////
 
+wire    [7:0]   OCA;
+wire            CHAOV;
+
 //declare K005295 core
 K005295 K005295_main
 (
@@ -843,7 +846,7 @@ K005295 K005295_main
     .o_XB7                      (                           ),
 
     .i_OBJHL                    (                           ),
-    .o_CHAOV                    (                           ),
+    .o_CHAOV                    (CHAOV                      ),
     .o_ORINC                    (ORINC                      ),
     .o_WRTIME2                  (                           ),
     .o_COLORLATCH_n             (                           ),
@@ -851,14 +854,8 @@ K005295 K005295_main
     .o_PIXELLATCH_WAIT_n        (                           ),
     .o_LATCH_A_D2               (                           ),
     .o_PIXELSEL                 (                           ),
-    .o_OCA                      (                           )
+    .o_OCA                      (OCA                        )
 );
-
-
-
-
-
-
 
 
 
@@ -927,7 +924,7 @@ assign  cpu_addr =  (i_CHACS_n == 1'b1) ?
 //LS157*2 11A/B MUX
 wire    [7:0]   gfx_addr;
 assign  gfx_addr = VCA;
-//assign  gfx_addr = (CHAOV_n == 1'b0) ? VCA : OCA;
+assign  gfx_addr = (CHAOV == 1'b0) ? VCA : OCA;
 
 //LS157*2 10A/B MUX
 wire    [7:0]   charram_addr;
@@ -1125,6 +1122,14 @@ K005290 K005290_main
     .o_A_TRN_n                  (A_TRN_n                    ),
     .o_B_TRN_n                  (B_TRN_n                    )
 );    
+
+
+
+
+
+
+
+
 
 
 

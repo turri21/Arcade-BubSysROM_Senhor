@@ -1558,7 +1558,7 @@ end
 /*
     GX400 uses 1Mb of frame buffer, but 256*256 size sprite field consumes
     only 512kb. I think Konami engineers designed the hardware that can
-    support interaced mode that was never used.
+    support interlaced mode that was never used.
 */
 
 reg             buffer_frame_parity = 1'b0;
@@ -1580,6 +1580,8 @@ end
 
 reg     [15:0]  EVENBUFFER_ADDR; //unmultiplexed, buffer A on the Nemesis schematics
 reg     [15:0]  ODDBUFFER_ADDR; //unmultiplexed, buffer B on the Nemesis schematics
+assign  o_FA = (i_OBJHL == 1'b0) ? EVENBUFFER_ADDR[7:0] : EVENBUFFER_ADDR[15:8]; //RAS : CAS
+assign  o_FB = (i_OBJHL == 1'b0) ?  ODDBUFFER_ADDR[7:0] :  ODDBUFFER_ADDR[15:8]; //RAS : CAS
 
 always @(*)
 begin
@@ -1589,13 +1591,65 @@ begin
             ODDBUFFER_ADDR  <= {buffer_frame_parity, buffer_ypos_counter, oddbuffer_xpos_counter[6:0]};
         end
         1'b0: begin //active video period
-            EVENBUFFER_ADDR <= {buffer_frame_parity, buffer_y_screencounter, buffer_x_screencounter};
-            ODDBUFFER_ADDR  <= {buffer_frame_parity, buffer_y_screencounter, buffer_x_screencounter};
+            EVENBUFFER_ADDR <= {buffer_frame_parity, buffer_y_screencounter ^ {8{i_FLIP}}, buffer_x_screencounter ^ {7{i_FLIP}}};
+            ODDBUFFER_ADDR  <= {buffer_frame_parity, buffer_y_screencounter ^ {8{i_FLIP}}, buffer_x_screencounter ^ {7{i_FLIP}}};
         end
     endcase
 end
 
 
 
+
+
+
+
+
+///////////////////////////////////////////////////////////
+//////  XA7 XB7
+////
+
+/*
+    When the X coordinate goes out of the screen (xpos>255), the xpos counter
+    value wraps around, which can damage the sprite drawn before, so make XA/XB
+    as 1 and overwrite it with the existing data without updating the value.
+
+    Need to delay 1 clk.
+*/
+
+always @(posedge i_EMU_MCLK)
+begin
+    if(!i_EMU_CLK6MPCEN_n)
+    begin
+        o_XA7 <= evenbuffer_xpos_counter[7];
+        o_XB7 <= oddbuffer_xpos_counter[7];
+    end
+end
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////
+//////  CAS DELAY
+////
+
+/*
+    OBJ H/L is used externally as RAS(not inverted), and K005295 delays 
+    OBJ H/L about 20ns(measured by Hantek 4032L @ 100M samples/s) using
+    internal delay cells(why??? why did they made a pass-through pin just
+    for the delay?)
+
+    I normally use 54.2ns(18.432MHz) RAS-CAS delay in this model.
+
+    TODO: measure it with an oscilloscope
+*/
+
+always @(posedge i_EMU_MCLK)
+begin
+    o_CAS <= i_OBJHL;
+end
 
 endmodule
