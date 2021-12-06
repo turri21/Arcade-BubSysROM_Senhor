@@ -12,8 +12,8 @@ module K005294
 
     input   wire            i_TILELINELATCH_n,
 
-    output  reg     [7:0]   o_AD,
-    output  reg     [7:0]   o_BD,
+    output  reg     [7:0]   o_DA,
+    output  reg     [7:0]   o_DB,
 
     //005294 control signals
     input   wire            i_WRTIME2,
@@ -92,7 +92,7 @@ end
 
 reg     [2:0]   pixelsel_dly [3:0];
 reg     [1:0]   wrtime2_dly;
-reg     [2:0]   pixellatch_wait_dly;
+reg     [3:0]   pixellatch_wait_dly;
 
 always @(posedge i_EMU_MCLK)
 begin
@@ -123,6 +123,7 @@ begin
         pixellatch_wait_dly[0] <= ~i_PIXELLATCH_WAIT_n;
         pixellatch_wait_dly[1] <= pixellatch_wait_dly[0];
         pixellatch_wait_dly[2] <= pixellatch_wait_dly[1];
+        pixellatch_wait_dly[3] <= pixellatch_wait_dly[2];
     end
 end
 
@@ -178,22 +179,22 @@ end
 
 always @(*)
 begin
-    case({pixellatch_wait_dly[2], i_XPOS_D0})
+    case({pixellatch_wait_dly[3], i_XPOS_D0})
         2'b00: begin
-            o_AD <= {OBJ_PALETTE, OBJ_PIXEL_LATCHED};
-            o_BD <= {OBJ_PALETTE, OBJ_PIXEL_UNLATCHED};
+            o_DA <= {OBJ_PALETTE, OBJ_PIXEL_LATCHED};
+            o_DB <= {OBJ_PALETTE, OBJ_PIXEL_UNLATCHED};
         end
         2'b01: begin
-            o_AD <= {OBJ_PALETTE, OBJ_PIXEL_UNLATCHED};
-            o_BD <= {OBJ_PALETTE, OBJ_PIXEL_LATCHED};
+            o_DA <= {OBJ_PALETTE, OBJ_PIXEL_UNLATCHED};
+            o_DB <= {OBJ_PALETTE, OBJ_PIXEL_LATCHED};
         end
         2'b10: begin
-            o_AD <= {OBJ_PALETTE, OBJ_PIXEL_LATCHED};
-            o_BD <= {4'b0000, 4'b0000};
+            o_DA <= {OBJ_PALETTE, OBJ_PIXEL_LATCHED};
+            o_DB <= {4'b0000, 4'b0000};
         end
         2'b11: begin
-            o_AD <= {4'b0000, 4'b0000};
-            o_BD <= {OBJ_PALETTE, OBJ_PIXEL_LATCHED};
+            o_DA <= {4'b0000, 4'b0000};
+            o_DB <= {OBJ_PALETTE, OBJ_PIXEL_LATCHED};
         end
     endcase
 end

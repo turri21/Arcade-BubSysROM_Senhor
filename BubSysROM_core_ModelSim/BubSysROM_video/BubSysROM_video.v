@@ -343,7 +343,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK18MNCEN_n)
     begin
-        CHAMPX2 = CHAMPX;
+        CHAMPX2 <= CHAMPX;
     end
 end
 
@@ -817,6 +817,19 @@ SRAM2k8 OBJTABLE
 
 wire    [7:0]   OCA;
 wire            CHAOV;
+reg             OBJHL;
+
+wire    [7:0]   FA, FB;
+wire            XA7, XB7;
+wire            OBJBUF_CAS;
+
+wire            WRTIME2;
+wire            COLORLATCH_n;
+wire            XPOS_D0;
+wire            PIXELLATCH_WAIT_n;
+wire            LATCH_A_D2;
+wire    [2:0]   PIXELSEL;
+
 
 //declare K005295 core
 K005295 K005295_main
@@ -839,21 +852,25 @@ K005295 K005295_main
     .i_OBJDATA                  (objtable_dout              ),
     .o_ORA                      (ORA                        ),
 
-    .o_CAS                      (                           ),
-    .o_FA                       (                           ),
-    .o_XA7                      (                           ),
-    .o_FB                       (                           ),
-    .o_XB7                      (                           ),
+    .o_CAS                      (OBJBUF_CAS                 ),
 
-    .i_OBJHL                    (                           ),
+    .o_FA                       (FA                         ),
+    .o_FB                       (FB                         ),
+
+    .o_XA7                      (XA7                        ),
+    .o_XB7                      (XB7                        ),
+
+    .i_OBJHL                    (OBJHL                      ),
     .o_CHAOV                    (CHAOV                      ),
     .o_ORINC                    (ORINC                      ),
-    .o_WRTIME2                  (                           ),
-    .o_COLORLATCH_n             (                           ),
-    .o_XPOS_D0                  (                           ),
-    .o_PIXELLATCH_WAIT_n        (                           ),
-    .o_LATCH_A_D2               (                           ),
-    .o_PIXELSEL                 (                           ),
+    
+    .o_WRTIME2                  (WRTIME2                    ),
+    .o_COLORLATCH_n             (COLORLATCH_n               ),
+    .o_XPOS_D0                  (XPOS_D0                    ),
+    .o_PIXELLATCH_WAIT_n        (PIXELLATCH_WAIT_n          ),
+    .o_LATCH_A_D2               (LATCH_A_D2                 ),
+    .o_PIXELSEL                 (PIXELSEL                   ),
+
     .o_OCA                      (OCA                        )
 );
 
@@ -923,8 +940,7 @@ assign  cpu_addr =  (i_CHACS_n == 1'b1) ?
 
 //LS157*2 11A/B MUX
 wire    [7:0]   gfx_addr;
-assign  gfx_addr = VCA;
-assign  gfx_addr = (CHAOV == 1'b0) ? VCA : OCA;
+assign  gfx_addr = (CHAOV == 1'b0) ? OCA : VCA;
 
 //LS157*2 10A/B MUX
 wire    [7:0]   charram_addr;
@@ -937,7 +953,7 @@ assign  charram_addr =  (~ABS_2H == 1'b0) ? gfx_addr : cpu_addr;
 
 //RAS/CAS
 wire            charram_ras_n = ~CHAMPX;
-reg             charram_cas_n = 1'b1; //54.25ns delayed RAS
+reg             charram_cas_n = 1'b1; //54.25ns delayed RAS, same as CHAMPX2
 always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK18MNCEN_n)
@@ -971,7 +987,7 @@ wire            charram2_rd = ~charram2_rw; //disables output when reading
 wire            charram1u_wr = charramu_en | charram1_rw;
 wire            charram1l_wr = charraml_en | charram1_rw;
 wire            charram2u_wr = charramu_en | charram2_rw;
-wire            charram2l_wr = charramu_en | charram2_rw;
+wire            charram2l_wr = charraml_en | charram2_rw;
 
 
 //declare charram
@@ -1129,8 +1145,125 @@ K005290 K005290_main
 
 
 
+///////////////////////////////////////////////////////////
+//////  K005294
+////
+
+wire            TILELINELATCH_n = ~(ABS_1H & ABS_2H);
+wire    [7:0]   DA;
+wire    [7:0]   DB;
 
 
+K005294 K005294_main
+(
+    .i_EMU_MCLK                 (i_EMU_MCLK                 ),
+    .i_EMU_CLK6MPCEN_n          (o_EMU_CLK6MPCEN_n          ),
+
+    .i_GFXDATA                  ({charram1_dout, charram2_dout}),
+    .i_OC                       (objtable_dout[4:1]         ),
+
+    .i_TILELINELATCH_n          (TILELINELATCH_n            ),
+
+    .o_DA                       (DA                         ),
+    .o_DB                       (DB                         ),
+
+    .i_WRTIME2                  (WRTIME2                    ),
+    .i_COLORLATCH_n             (COLORLATCH_n               ),
+    .i_XPOS_D0                  (XPOS_D0                    ),
+    .i_PIXELLATCH_WAIT_n        (PIXELLATCH_WAIT_n          ),
+    .i_LATCH_A_D2               (LATCH_A_D2                 ),
+    .i_PIXELSEL                 (PIXELSEL                   )
+);
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////
+//////  FRAME BUFFER
+////
+
+
+reg             DFF_18H_A;
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MPCEN_n)
+    begin
+        DFF_18H_A <= WRTIME2;
+    end
+end
+
+reg             DFF_18H_B;
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MNCEN_n) //negative edge of CLK6M
+    begin
+        DFF_18H_B <= DFF_18H_A;
+    end
+end
+
+wire            wrtime2_buf_ras_n = DFF_18H_A & ~DFF_18H_B; //21H LS08 AND
+wire            objbuf_ras_n = (OBJWR == 1'b0) ? ~CHAMPX : wrtime2_buf_ras_n; //13H LS157
+
+
+
+reg             DFF_17H_B;
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MPCEN_n) //positive edge of CLK6M
+    begin
+        DFF_17H_B <= DFF_18H_A;
+    end
+end
+
+wire            wrtime2_buf_we_n = __REF_CLK6M | ~DFF_17H_B; //14H LS32 OR
+wire            objbuf_we_n = (OBJWR == 1'b0) ? OBJCLRWE : wrtime2_buf_we_n; //13H LS157
+
+
+
+reg             objbuf_ras_dly_n;
+
+always @(posedge i_EMU_MCLK)
+begin
+    OBJHL <= ~objbuf_ras_n;
+
+    objbuf_ras_dly_n <= objbuf_ras_n;
+end
+
+
+wire            evenbuffer_overwrite_disable = ~(~XA7 & |{DA[3:0]});
+wire    [7:0]   evenbuffer_dout;
+wire    [7:0]   evenbuffer_din =    (OBJCLR == 1'b1) ? 8'h00 :
+                                        (evenbuffer_overwrite_disable == 1'b0) ? DA : evenbuffer_dout;
+
+wire            oddbuffer_overwrite_disable = ~(~XB7 & |{DB[3:0]});
+wire    [7:0]   oddbuffer_dout;
+wire    [7:0]   oddbuffer_din =     (OBJCLR == 1'b1) ? 8'h00 :
+                                        (oddbuffer_overwrite_disable == 1'b0) ? DB : oddbuffer_dout;
+                                    
+
+//EVEN
+DRAM64k8 EVENBUF 
+(
+    .i_MCLK (i_EMU_MCLK), .i_ADDR (FA),
+    .i_DIN (evenbuffer_din), .o_DOUT (evenbuffer_dout), 
+    .i_RAS_n (objbuf_ras_n), .i_CAS_n (~OBJBUF_CAS), .i_WR_n (objbuf_we_n) 
+);
+
+
+//ODD
+DRAM64k8 ODDBUF 
+(
+    .i_MCLK (i_EMU_MCLK), .i_ADDR (FB),
+    .i_DIN (oddbuffer_din), .o_DOUT (oddbuffer_dout), 
+    .i_RAS_n (objbuf_ras_n), .i_CAS_n (~OBJBUF_CAS), .i_WR_n (objbuf_we_n) 
+);
 
 
 
@@ -1166,7 +1299,7 @@ K005293 K005293_main
 
     .i_A_PIXEL                  (A_PIXEL                    ),
     .i_B_PIXEL                  (B_PIXEL                    ),
-    .i_OBJBUF_DATA              (16'h0000                   ),
+    .i_OBJBUF_DATA              ({oddbuffer_dout, evenbuffer_dout}),
 
     .i_A_TRN_n                  (A_TRN_n                    ),
     .i_B_TRN_n                  (B_TRN_n                    ),

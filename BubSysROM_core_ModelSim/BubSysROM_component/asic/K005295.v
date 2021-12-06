@@ -27,13 +27,13 @@ module K005295
     output  wire    [2:0]   o_ORA,
 
     //framebuffer CAS
-    output  reg             o_CAS,
+    output  wire            o_CAS,
 
     //framebuffer
     output  wire    [7:0]   o_FA, //ODD BUFFER
-    output  reg             o_XA7,
-
     output  wire    [7:0]   o_FB, //EVEN BUFFER
+
+    output  reg             o_XA7,
     output  reg             o_XB7,
 
     //peripheral control signals
@@ -351,23 +351,24 @@ end
 ////
 
 //countup signal delay registers
-reg             xpos_cnt_n;
+reg     [1:0]   xpos_cnt_dly_n;
 always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        xpos_cnt_n <= ~o_WRTIME2;
+        xpos_cnt_dly_n[0] <= ~o_WRTIME2;
+        xpos_cnt_dly_n[1] <= xpos_cnt_dly_n[0];
     end
 end
 
 reg             ypos_cnt_n;
-reg     [2:0]   ypos_cnt_dly_n;
+reg     [3:0]   ypos_cnt_dly_n;
 always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
         ypos_cnt_dly_n[0] <= ypos_cnt_n;
-        ypos_cnt_dly_n[2:1] <= ypos_cnt_dly_n[1:0];
+        ypos_cnt_dly_n[3:1] <= ypos_cnt_dly_n[2:0];
     end
 end
 
@@ -384,14 +385,14 @@ begin
             evenbuffer_xpos_counter <= {LATCH_D[0], LATCH_E[7:1]} + LATCH_E[0];
             oddbuffer_xpos_counter <= {LATCH_D[0], LATCH_E[7:1]};
         end
-        else if(ypos_cnt_dly_n[2] == 1'b0)
+        else if(ypos_cnt_dly_n[3] == 1'b0)
         begin
             evenbuffer_xpos_counter <= {LATCH_D[0], LATCH_E[7:1]} + LATCH_E[0];
             oddbuffer_xpos_counter <= {LATCH_D[0], LATCH_E[7:1]};
         end
         else
         begin
-            if(xpos_cnt_n == 1'b0)
+            if(xpos_cnt_dly_n[1] == 1'b0)
             begin
                 evenbuffer_xpos_counter <= evenbuffer_xpos_counter + 8'd1;
                 oddbuffer_xpos_counter <= oddbuffer_xpos_counter + 8'd1;
@@ -413,7 +414,7 @@ begin
         end
         else
         begin
-            if(ypos_cnt_dly_n[2] == 1'b0)
+            if(ypos_cnt_dly_n[3] == 1'b0)
             begin
                 buffer_ypos_counter <= buffer_ypos_counter + 8'd1;
             end
@@ -1419,7 +1420,7 @@ wire    [2:0]   TILELINE_ADDR = hzoom_tileline_cntr ^ {3{LATCH_A[0]}};
 wire    [2:0]   HLINE_ADDR = vzoom_acc[9:7] ^ {3{LATCH_D[5]}};
 wire    [3:0]   VTILE_ADDR = vzoom_vtile_cntr ^ {4{LATCH_D[5]}};
 reg     [13:0]  CHARRAM_ADDR; //unmultiplexed
-assign  o_OCA = (i_CHAMPX == 1'b0) ? CHARRAM_ADDR[7:0] : {1'b1, CHARRAM_ADDR[10:8], 1'b1}; //RAS : CAS
+assign  o_OCA = (i_CHAMPX == 1'b0) ? CHARRAM_ADDR[7:0] : {1'b1, CHARRAM_ADDR[13:8], 1'b1}; //RAS : CAS
 
 always @(*)
 begin
@@ -1469,7 +1470,10 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        objwr_dly <= i_OBJWR;
+        if(i_ABS_1H == 1'b1) //negedge of 1H
+        begin
+            objwr_dly <= i_OBJWR;
+        end
     end
 end
 
@@ -1480,7 +1484,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        if(i_ABS_1H == 1'b0) //posedge of 1H
+        if(i_ABS_1H == 1'b1) //negedge of 1H
         begin
             if(objwr_dly == 1'b1)
             begin
@@ -1580,8 +1584,8 @@ end
 
 reg     [15:0]  EVENBUFFER_ADDR; //unmultiplexed, buffer A on the Nemesis schematics
 reg     [15:0]  ODDBUFFER_ADDR; //unmultiplexed, buffer B on the Nemesis schematics
-assign  o_FA = (i_OBJHL == 1'b0) ? EVENBUFFER_ADDR[7:0] : EVENBUFFER_ADDR[15:8]; //RAS : CAS
-assign  o_FB = (i_OBJHL == 1'b0) ?  ODDBUFFER_ADDR[7:0] :  ODDBUFFER_ADDR[15:8]; //RAS : CAS
+assign  o_FA = (o_CAS == 1'b0) ? EVENBUFFER_ADDR[7:0] : EVENBUFFER_ADDR[15:8]; //RAS : CAS
+assign  o_FB = (o_CAS == 1'b0) ?  ODDBUFFER_ADDR[7:0] :  ODDBUFFER_ADDR[15:8]; //RAS : CAS
 
 always @(*)
 begin
@@ -1633,23 +1637,10 @@ end
 
 
 ///////////////////////////////////////////////////////////
-//////  CAS DELAY
+//////  CAS
 ////
 
-/*
-    OBJ H/L is used externally as RAS(not inverted), and K005295 delays 
-    OBJ H/L about 20ns(measured by Hantek 4032L @ 100M samples/s) using
-    internal delay cells(why??? why did they made a pass-through pin just
-    for the delay?)
+assign  o_CAS = i_OBJHL;
 
-    I normally use 54.2ns(18.432MHz) RAS-CAS delay in this model.
-
-    TODO: measure it with an oscilloscope
-*/
-
-always @(posedge i_EMU_MCLK)
-begin
-    o_CAS <= i_OBJHL;
-end
 
 endmodule
