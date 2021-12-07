@@ -373,9 +373,9 @@ end
 reg             DFF_19H_B;
 always @(posedge i_EMU_MCLK)
 begin
-    if(!o_EMU_CLK6MNCEN_n) //negedge cen
+    if(!o_EMU_CLK6MPCEN_n) //negedge cen
     begin
-        if(ABS_1H == 1'b0) //every EVEN pixel
+        if(ABS_1H == 1'b1) //every ODD pixel
         begin
             DFF_19H_B <= DFF_19H_A;
         end        

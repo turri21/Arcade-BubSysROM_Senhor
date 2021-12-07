@@ -179,7 +179,7 @@ end
 
 always @(*)
 begin
-    case({pixellatch_wait_dly[3], i_XPOS_D0})
+    case({pixellatch_wait_dly[2], i_XPOS_D0})
         2'b00: begin
             o_DA <= {OBJ_PALETTE, OBJ_PIXEL_LATCHED};
             o_DB <= {OBJ_PALETTE, OBJ_PIXEL_UNLATCHED};

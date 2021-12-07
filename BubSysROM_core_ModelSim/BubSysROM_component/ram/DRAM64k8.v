@@ -49,6 +49,14 @@ begin
 end
 
 
-
+integer i;
+    
+initial
+begin
+    for(i = 0; i < 65536; i = i + 1)
+    begin
+        RAM64k8[i] <= 8'h00;
+    end
+end
 
 endmodule
