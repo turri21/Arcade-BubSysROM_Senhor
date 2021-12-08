@@ -551,10 +551,18 @@ end
     ATTR_LATCHING_S0:
         1픽셀동안 latching_start을 1로 올립니다. 이후 1H 클럭의 시프트 
         레지스터가 0을 시프트하며 차례대로 스프라이트 속성을 차례로 래치합니다.
+
+        Put 1 in latching_start for 1 pixel. After that, sprite attributes are latched
+        sequentially while 1H clocked shift register shifting 0(inverted input) 
+
     ATTR_LATCHING_S1:
         14픽셀동안 1H 클럭의 시프트 레지스터가 스프라이트 속성을 래치하는동안
         FSM은 아무것도 하지 않습니다. 4H의 상승 엣지에서 샘플링된 LATCH_F_2H_NCLKD_en_n
         과 PIXEL3_n의 OR이 0인 경우 HCOUNT_S0으로 점프합니다.
+
+        FSM does nothing while 1H clocked sr working for 14 pixels. FSM jumps to
+        HCOUNT_S0 if ORed signal of LATCH_F_2H_NCLKD_en_n(sampled at a rising edge of 
+        4H) and PIXEL3_n is 0.
 
     HCOUNT_S0:
         임의의 HCOUNT_S0동안 hcounter_en_n을 0으로 내려 동작시킵니다. 이 신호는
@@ -1544,7 +1552,7 @@ end
 /*
     GX400 uses 1Mb of frame buffer, but 256*256 size sprite field consumes
     only 512kb. I think Konami engineers designed the hardware that can
-    support interlaced mode that was never used.
+    support interlaced mode that was never been used.
 */
 
 reg             buffer_frame_parity = 1'b0;
