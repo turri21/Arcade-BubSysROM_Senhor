@@ -3,6 +3,10 @@
 */
 
 module K005295
+#(
+    parameter               __ENABLE_DOUBLE_HEIGHT_MODE = 1'b0,
+    parameter               __SAVE_FRAMEBUFFER_CAPACITY = 1'b1
+)
 (
     //emulator
     input   wire            i_EMU_MCLK,
@@ -58,8 +62,6 @@ module K005295
 ///////////////////////////////////////////////////////////
 //////  GLOBAL SIGNALS
 ////
-
-reg             __ENABLE_DOUBLE_HEIGHT_MODE = 1'b0;
 
 reg             hsize_parity = 1'b0;
 reg             pixellatch_wait_n;
@@ -1556,7 +1558,7 @@ begin
 
         if(i_VBLANK_n == 1'b0 && prev_vblank == 1'b1) //async reset by VBLANK
         begin
-            buffer_frame_parity <= ~buffer_frame_parity;
+            buffer_frame_parity <= ~buffer_frame_parity | __SAVE_FRAMEBUFFER_CAPACITY;
         end
     end
 end
