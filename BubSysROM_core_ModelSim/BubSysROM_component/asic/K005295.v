@@ -2,6 +2,45 @@
     K005295 SPRITE ENGINE
 */
 
+/*
+    GX400 SPRITES
+
+    Konami GX400 hardware(developed in 1984, released in March 1985) is
+    equipped with a nice sprite engine. This engine can draw 8 sizes of
+    sprites:
+        32*32, 16*32, 32*16, 64*64, 8*8, 16*8, 8*16, 16*16   
+    by enabling double height mode(LATCH_A bit 1), it can draw some
+    additional sizes:
+        32*64, 16*64, 64*128, 8*32
+
+    All sprite data is stored in CHARRAM. 4bpp, big endian. For example,
+    think about 16*8 sprite. That can be expressed just like this:
+
+
+        |----------- HLINE -----------|
+        |---TILELINE---|---TILELINE---|
+        O O O O o o o o A A A A a a a a ---
+        O O O O o o o o A A A A a a a a  |
+        O O O O o o o o A A A A a a a a  |
+        O O O O o o o o A A A A a a a a VTILE
+        O O O O o o o o A A A A a a a a  |
+        O O O O o o o o A A A A a a a a  |
+        O O O O o o o o A A A A a a a a  |
+        O O O O o o o o A A A A a a a a ---
+
+    Sprite engine can fetch 8 pixels of sprite data from CHARRAM at 
+    a single time. 4bpp*8 = 32bits. I will call this "TILELINE."
+
+    This sprite is 16*8, so there are two TILELINEs in one "HLINE"
+    To draw ONE HLINE, TWO TILELINEs are needed to be fetched. 
+
+    Again, eight HLINEs are needed to complete this 16*8 sprite.
+    I will call this eight HLINEs, "VTILE". Width doesn't matter.
+
+    Please remember these three terms, TILELINE, HLINE, VTILE. I
+    use these terms in variable names.
+*/
+
 module K005295
 #(
     parameter               __ENABLE_DOUBLE_HEIGHT_MODE = 1'b0,
@@ -69,26 +108,32 @@ reg             pixellatch_wait_n;
 
 
 
-/*
-    PIXEL3_n generator
 
-PIXEL3_n은 매우 중요합니다. 3픽셀에 한번씩 0이 되며, CHARRAM에서 복사한
-스프라이트 라인을 005294가 PIXEL3_n의 상승 엣지에 래치하기 때문입니다.
+
+///////////////////////////////////////////////////////////
+//////  PIXEL3
+////
+
+/*
+    pixel3_n is very important. The most of branches of FSM are occurs
+    on Pixel 3.
 */
 
-wire            PIXEL3_n = ~(i_ABS_1H & i_ABS_2H);
+wire            pixel3_n = ~(i_ABS_1H & i_ABS_2H);
 
+
+
+
+
+
+///////////////////////////////////////////////////////////
+//////  4H clocked DMA_n
+////
 
 /*
-    DMA_n register
-
-DMA_n을 4H의 상승엣지에서 항상 샘플링하여 FSM이 새로운 VBLANK의 시작을
-알 수 있게 합니다. 만약 샘플링된 DMA_n이 0이고 VBLANK또는 VBLANKH가 0인
-경우, 이것이 새로운 VBLANK의 시작입니다.
-
-Sampling DMA_n at every rising edge of 4H allows FSM to know 
-the start of a new VBLANK. If the value of sampled DMA_n is 1
-and VBLANK or VBLANKH is 0, it is the beginning of a new VBLANK.
+    Sampling DMA_n at every rising edge of 4H allows FSM to know 
+    the start of a new VBLANK. If the value of sampled DMA_n is 1
+    and VBLANK or VBLANKH is 0, it is the beginning of a new VBLANK.
 */
 
 reg             DMA_4H_CLKD_n = 1'b1;
@@ -107,9 +152,11 @@ end
 
 
 
-/*
-    ORA/register enable generation
-*/
+
+
+///////////////////////////////////////////////////////////
+//////  ORA/register enable generation
+////
 
 //latch enable signal
 wire            LATCH_A_en_n; //OBJRAM BYTE 2: zoom MSBs[7:6], size[5:3], unknown size bits[2:1], hflip[0]
@@ -148,9 +195,12 @@ end
 
 
 
-/*
-    Sprite attribute latches
-*/
+
+
+
+///////////////////////////////////////////////////////////
+//////  SPRITE ATTRIBUTE LATCHES
+////
 
 //LATCH_F is not shown here since ypos data is directly loaded into ypos counter
 reg     [7:0]   LATCH_A; //OBJRAM BYTE 2: zoom MSBs[7:6], size[5:3], unknown size bits[2:1], hflip[0]
@@ -196,9 +246,32 @@ end
 
 
 
+
+
+
 ///////////////////////////////////////////////////////////
-//////  HZOOM FEEDBACK COUNTER
+//////  HZOOM FEEDBACK ACCUMULATOR
 ////
+
+/*
+                        FEEDBACK LOOP
+                    ┌─────────────────────────┐
+                    │                         │
+                    │   ┌─────┐     ┌─────┐   │
+                    │   │  A  │CLK─►│  D  │   │
+                    └─► │  D  │RST─►│  F  ├───┘
+                        │  D  │     │  F  │
+                        │  E  ├(+)─►│     │
+    ZOOM FACTOR ──────► │  R  │     │     ├────► PIXELSEL[2:0]
+                        │     │     │     │
+                        └──┬──┘     └─────┘
+                           │ CARRY
+                           │        ┌─────┐
+                           │   CLK─►│ LS  │
+                           |   RST─►│ 163 ├────► TILELINE_ADDR[2:0]
+                           └───────►│     │
+                                    └─────┘
+*/
 
 reg             hzoom_cnt_n;
 reg             hzoom_rst_n;
@@ -271,6 +344,26 @@ end
 ///////////////////////////////////////////////////////////
 //////  VZOOM FEEDBACK COUNTER
 ////
+
+/*
+                        FEEDBACK LOOP
+                    ┌─────────────────────────┐
+                    │                         │
+                    │   ┌─────┐     ┌─────┐   │
+                    │   │  A  │CLK─►│  D  │   │
+                    └─► │  D  │RST─►│  F  ├───┘
+                        │  D  │     │  F  │
+                        │  E  ├(+)─►│     │
+    ZOOM FACTOR ──────► │  R  │     │     ├────► HLINE_ADDR[3:0]
+                        │     │     │     │
+                        └──┬──┘     └─────┘
+                           │ CARRY
+                           │        ┌─────┐
+                           │   CLK─►│ LS  │
+                           |   RST─►│ 163 ├────► VTILE_ADDR[4:0]
+                           └───────►│     │
+                                    └─────┘
+*/
 
 reg             vzoom_cnt_n;
 reg             vzoom_rst_n;
@@ -492,7 +585,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        if(PIXEL3_n == 1'b0)
+        if(pixel3_n == 1'b0)
         begin
             o_CHAOV <= FSM_SUSPEND;
         end
@@ -510,7 +603,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        if(PIXEL3_n == 1'b0)
+        if(pixel3_n == 1'b0)
         begin
             LATCH_F_2H_NCLKD_en_n <= LATCH_F_en_n;
         end
@@ -549,53 +642,50 @@ end
 
 /*
     ATTR_LATCHING_S0:
-        1픽셀동안 latching_start을 1로 올립니다. 이후 1H 클럭의 시프트 
-        레지스터가 0을 시프트하며 차례대로 스프라이트 속성을 차례로 래치합니다.
-
         Put 1 in latching_start for 1 pixel. After that, sprite attributes are latched
         sequentially while 1H clocked shift register shifting 0(inverted input) 
 
     ATTR_LATCHING_S1:
-        14픽셀동안 1H 클럭의 시프트 레지스터가 스프라이트 속성을 래치하는동안
-        FSM은 아무것도 하지 않습니다. 4H의 상승 엣지에서 샘플링된 LATCH_F_2H_NCLKD_en_n
-        과 PIXEL3_n의 OR이 0인 경우 HCOUNT_S0으로 점프합니다.
-
         FSM does nothing while 1H clocked sr working for 14 pixels. FSM jumps to
         HCOUNT_S0 if ORed signal of LATCH_F_2H_NCLKD_en_n(sampled at a rising edge of 
-        4H) and PIXEL3_n is 0.
+        4H) and pixel3_n is 0. Reset HV accumulator at this time.
 
     HCOUNT_S0:
-        임의의 HCOUNT_S0동안 hcounter_en_n을 0으로 내려 동작시킵니다. 이 신호는
-        카운터의 캐리와 OR되어있어 캐리가 1로 출력되는 엣지 다음 엣지부터는 카운터가
-        증가하지 않습니다.
+        hcounter_en_n becomes 0 during HCOUNT_S0. If H accumulator's carry is enabled,
+        FSM controls hcounter_en_n according to the hsize_parity(this is important)
+        if hsize at the point is odd(=1), put 0 in pixellatch_wait_n(stop K005294 to
+        latch a pixel). In contrast, if hsize at the point is even(=0), put 1 in
+        pixellatch_wait_n
+
     HWAIT_S0:
-        현재 타일라인의 데이터는 2H의 상승 엣지(PIXEL3_n = 0)에서 항상 래치되므로,
-        그 전에 타일라인 그리기가 끝났을 경우 다음 데이터를 기다리기 위해 HWAIT사이클
-        을 삽입합니다. 상승 엣지가 감지되면 HCOUNT로 복귀하거나 FSM_SUSPEND의 상태에 따라
-        SUSPENSION_S0으로 갑니다.
+        Current tileline data is always latched at a rising edge (pixel3_n = 0) of 
+        the 2H, so if the tileline drawing is finished before that, insert HWAIT_S0
+        cycle to wait for the next data. At a rising edge of 2H, the FSM can branch to:
+            HCOUNT_S0(hline not completed)
+            ODDSIZE_S0(current hline is ended with an =odd numbered size 7, 9, 11...)
+            SUSPEND_S0(active video period)
 
     ODDSIZE_S0:
-        확대축소된 스프라이트의 가로 픽셀 수가 홀수이고 해당 스프라이트 라인 그리기
-        를 마쳐야 할 때 발생합니다. 홀짝 판단은 내부의 1비트 레지스터 값으로 수행하며, 
-        2H의 상승 엣지에서 이전 상태가 HCOUNT나 HWAIT이였고, END_OF_HLINE플래그가
-        활성화되었고, 가로 픽셀 수가 홀수일때 이 상태로 옵니다. 이 상태가 존재하는
-        이유는 다음과 같습니다:
-        1. 스프라이트의 쓰기는 2픽셀씩 이루어지며, 짝수픽셀을 래치시킨 후에 홀수픽셀을
-           띄워둔 상태에서 프레임버퍼에 쓰는 방식입니다.
-        2. 짝수픽셀만 가져온 상태로 타일라인이 끝나면, 아직 프레임 버퍼에 기록하지 않았
-           기 때문에 WRTIME은 0인 상태이고, 피드백 카운터의 캐리가 1이 되어 005294 내부
-           에서 짝수픽셀의 래치를 보류하고 있는 상태입니다.
-        3. 이 상태는 2H의 상승 엣지가 들어올 동안 지속됩니다. ODDSIZE_S0은 이 래치되지
-           않은 짝수 픽셀을 래치시키고 프레임 버퍼에 짝수 픽셀 데이터와 홀수 픽셀에는 0
-           을 기록할 시간을 제공합니다
+        If the previous state was HCOUNT_S0 or HWAIT_S0, and if it satisfies the 
+        condition that hsize is odd, FSM goes ODDSIZE_S0 to end current hline drawing
+        cycle. The reason why this state exists is as follows:
+        1. The engine draws sprite two pixels(EVEN+ODD) per one buffer access cycle.
+           It latches the first pixel from pixel selctor, switches selector to pick
+           the next pixel. Writes these two pixels to the frame buffer.
+        2. If the current tileline's size is an odd number, and should be terminate the
+           cycle, it can't be done. Because the first pixel is still on the pixel
+           selector's output without being latched. And, WRTIME has not been asserted.
+           It(the first pixel) can't be written on the buffer.
+        3. This cycle maintained for four pixels(next pixel3_n = next rising edge of 2H)
+           During this cycle, the first pixel is latched and WRTIME is asserted in 
+           pixel3_n of ODDSIZE_S0.
 
     SUSPEND_S0:
-        FSM_SUSPEND = (i_HBLANK_n & i_VBLANKH_n) | ~i_DMA_n 이 0이 되었을 때 발생합니다. 
-        ATTR_LATCHING_S1일때는 이 상태로 가지 않습니다. 이외의 상태에서는 2H의 상승
-        엣지마다 FSM_SUSPEND을 확인하여 이 신호가 1일 경우에는 무조건 작업을 중단하고 이
-        상태로 갑니다. WRTIME이나 다른 신호들은 외부 플립플롭에 의해 딜레이되기 때문에
-        FSM이 이 상태로 가도 잠시동안은 다른 신호들이 유지됩니다.
-
+        Branches to this state unconditionally when FSM_SUSPEND is 1. When the FSM is in
+        ATTR_LATCHING_S1, it moves to this state after attrubute latching. The FSM checks
+        FSM_SUSPEND at every rising edge of 2H. 
+        Note that WRTIME2 and o_PIXELLATCH_WAIT_n will still be on the lines after a
+        suspension, since they are just delayed signals from the shift registers. 
 */
 
 //Declare states
@@ -621,7 +711,7 @@ begin
             
             // WAIT FOR LATCHING COMPLETION
             ATTR_LATCHING_S1:
-                if(PIXEL3_n == 1'b0) //exit condition: 1 pixel just after end of ORINC(negative logic)
+                if(pixel3_n == 1'b0) //exit condition: 1 pixel just after end of ORINC(negative logic)
                 begin
                     if(LATCH_F_2H_NCLKD_en_n == 1'b0)
                     begin
@@ -649,7 +739,7 @@ begin
             HCOUNT_S0:
                 if(drawing_status == END_OF_SPRITE)
                 begin
-                    if(PIXEL3_n == 1'b0) //at pixel 3
+                    if(pixel3_n == 1'b0) //at pixel 3
                     begin
                         if(FSM_SUSPEND == 1'b0) //keep going
                         begin
@@ -667,7 +757,7 @@ begin
                 end
                 else if(drawing_status == END_OF_HLINE)
                 begin
-                    if(PIXEL3_n == 1'b0) //at pixel 3
+                    if(pixel3_n == 1'b0) //at pixel 3
                     begin
                         if(FSM_SUSPEND == 1'b0) //keep going
                         begin
@@ -692,7 +782,7 @@ begin
                 end
                 else if(drawing_status[1:0] == END_OF_TILELINE)
                 begin
-                    if(PIXEL3_n == 1'b0) //at pixel 3
+                    if(pixel3_n == 1'b0) //at pixel 3
                     begin
                         if(FSM_SUSPEND == 1'b0) //keep going
                         begin
@@ -710,7 +800,7 @@ begin
                 end
                 else // `KEEP_DRAWING
                 begin
-                    if(PIXEL3_n == 1'b0) //at pixel 3
+                    if(pixel3_n == 1'b0) //at pixel 3
                     begin
                         if(FSM_SUSPEND == 1'b0) //keep going
                         begin
@@ -731,7 +821,7 @@ begin
 
             // WAIT STATE: WAITING FOR /PX3
             HWAIT_S0:
-                if(PIXEL3_n == 1'b0) //exit condition: encounter px3
+                if(pixel3_n == 1'b0) //exit condition: encounter px3
                 begin
                     if(FSM_SUSPEND == 1'b0) //keep going, return to HCOUNT_S0 or fetch new attributes
                     begin
@@ -775,7 +865,7 @@ begin
             
             // WAIT FOR WRITE ONLY A SINGLE PIXEL
             ODDSIZE_S0:
-                if(PIXEL3_n == 1'b0) //exit condition: encounter px3
+                if(pixel3_n == 1'b0) //exit condition: encounter px3
                 begin
                     if(FSM_SUSPEND == 1'b0) //keep going, return to HCOUNT_S0 or fetch new attributes
                     begin
@@ -801,7 +891,7 @@ begin
 
             // SUSPEND STATE: WAITING FOR /PX3
             SUSPEND_S0: begin
-                if(PIXEL3_n == 1'b0) //exit condition: encounter px3
+                if(pixel3_n == 1'b0) //exit condition: encounter px3
                 begin
                     if(new_vblank_n == 1'b0)
                     begin
@@ -865,7 +955,7 @@ begin
             pixellatch_wait_n <= 1'b0;
         end
         ATTR_LATCHING_S1: begin
-            if(LATCH_F_2H_NCLKD_en_n == 1'b0 && PIXEL3_n == 1'b0)
+            if(LATCH_F_2H_NCLKD_en_n == 1'b0 && pixel3_n == 1'b0)
             begin
                 latching_start <= 1'b0;
 
@@ -920,7 +1010,7 @@ begin
 
             if(drawing_status == END_OF_SPRITE)
             begin
-                if(PIXEL3_n == 1'b0) //pixel 3
+                if(pixel3_n == 1'b0) //pixel 3
                 begin
                     hzoom_cnt_n <= 1'b1;
                     hzoom_rst_n <= 1'b1;
@@ -947,7 +1037,7 @@ begin
             end
             else if(drawing_status == END_OF_HLINE)
             begin
-                if(PIXEL3_n == 1'b0) //pixel 3
+                if(pixel3_n == 1'b0) //pixel 3
                 begin
                     hzoom_cnt_n <= 1'b1;
                     hzoom_rst_n <= 1'b0;
@@ -974,7 +1064,7 @@ begin
             end
             else if(drawing_status[1:0] == END_OF_TILELINE)
             begin
-                if(PIXEL3_n == 1'b0) //pixel 3
+                if(pixel3_n == 1'b0) //pixel 3
                 begin
                     hzoom_cnt_n <= 1'b0;
                     hzoom_rst_n <= 1'b1;
@@ -1001,7 +1091,7 @@ begin
             end
             else //`KEEP_DRAWING
             begin
-                if(PIXEL3_n == 1'b0) //pixel 3
+                if(pixel3_n == 1'b0) //pixel 3
                 begin
                     hzoom_cnt_n <= 1'b0;
                     hzoom_rst_n <= 1'b1;
@@ -1053,7 +1143,7 @@ begin
             begin
                 if(hsize_parity == 1'b0) //after drawing even pixels
                 begin
-                    if(PIXEL3_n == 1'b0) //pixel 3
+                    if(pixel3_n == 1'b0) //pixel 3
                     begin
                         hzoom_cnt_n <= 1'b1;
                         hzoom_rst_n <= 1'b1;
@@ -1080,7 +1170,7 @@ begin
                 end
                 else //after drawing odd pixels: everything will be changed in ODDSIZE_S0
                 begin
-                    if(PIXEL3_n == 1'b0) //pixel 3
+                    if(pixel3_n == 1'b0) //pixel 3
                     begin
                         hzoom_cnt_n <= 1'b1;
                         hzoom_rst_n <= 1'b1;
@@ -1110,7 +1200,7 @@ begin
             begin
                 if(hsize_parity == 1'b0) //after drawing even pixels
                 begin
-                    if(PIXEL3_n == 1'b0) //pixel 3
+                    if(pixel3_n == 1'b0) //pixel 3
                     begin
                         hzoom_cnt_n <= 1'b1;
                         hzoom_rst_n <= 1'b0;
@@ -1137,7 +1227,7 @@ begin
                 end
                 else //after drawing odd pixels: everything will be changed in ODDSIZE_S0
                 begin
-                    if(PIXEL3_n == 1'b0) //pixel 3
+                    if(pixel3_n == 1'b0) //pixel 3
                     begin
                         hzoom_cnt_n <= 1'b1;
                         hzoom_rst_n <= 1'b1;
@@ -1165,7 +1255,7 @@ begin
             end
             else if(drawing_status[1:0] == END_OF_TILELINE)
             begin
-                if(PIXEL3_n == 1'b0) //pixel 3
+                if(pixel3_n == 1'b0) //pixel 3
                 begin
                     hzoom_cnt_n <= 1'b0;
                     hzoom_rst_n <= 1'b1;
@@ -1192,7 +1282,7 @@ begin
             end
             else //`KEEP_DRAWING: WILL NOT HAPPEN
             begin
-                if(PIXEL3_n == 1'b0) //pixel 3
+                if(pixel3_n == 1'b0) //pixel 3
                 begin
                     hzoom_cnt_n <= 1'b0;
                     hzoom_rst_n <= 1'b1;
@@ -1238,7 +1328,7 @@ begin
             
             if(drawing_status == END_OF_SPRITE)
             begin
-                if(PIXEL3_n == 1'b0) //pixel 3
+                if(pixel3_n == 1'b0) //pixel 3
                 begin
                     hzoom_cnt_n <= 1'b1;
                     hzoom_rst_n <= 1'b0;
@@ -1265,7 +1355,7 @@ begin
             end
             else if(drawing_status == END_OF_HLINE)
             begin
-                if(PIXEL3_n == 1'b0) //pixel 3
+                if(pixel3_n == 1'b0) //pixel 3
                 begin
                     hzoom_cnt_n <= 1'b1;
                     hzoom_rst_n <= 1'b0;
@@ -1292,7 +1382,7 @@ begin
             end
             else if(drawing_status[1:0] == END_OF_TILELINE) //WILL NOT HAPPEN
             begin
-                if(PIXEL3_n == 1'b0) //pixel 3
+                if(pixel3_n == 1'b0) //pixel 3
                 begin
                     hzoom_cnt_n <= 1'b0;
                     hzoom_rst_n <= 1'b1;
@@ -1319,7 +1409,7 @@ begin
             end
             else //`KEEP_DRAWING(WILL NOT HAPPEN)
             begin
-                if(PIXEL3_n == 1'b0) //pixel 3
+                if(pixel3_n == 1'b0) //pixel 3
                 begin
                     hzoom_cnt_n <= 1'b0;
                     hzoom_rst_n <= 1'b1;
@@ -1387,7 +1477,7 @@ end
 */
 
 reg             wrtime1;
-wire            oddsize_wrtime0 = (sprite_engine_state == ODDSIZE_S0 && PIXEL3_n == 1'b0) ? 1'b1 : 1'b0;
+wire            oddsize_wrtime0 = (sprite_engine_state == ODDSIZE_S0 && pixel3_n == 1'b0) ? 1'b1 : 1'b0;
 wire            evensize_wrtime0 = (sprite_engine_state == HCOUNT_S0) ? ~hsize_parity : 1'b0;
 always @(posedge i_EMU_MCLK)
 begin
