@@ -1633,8 +1633,6 @@ end
 
 
 
-
-
 ///////////////////////////////////////////////////////////
 //////  BUFFER MUX
 ////
@@ -1656,7 +1654,7 @@ begin
 
         if(i_VBLANK_n == 1'b0 && prev_vblank == 1'b1) //async reset by VBLANK
         begin
-            buffer_frame_parity <= ~buffer_frame_parity | __SAVE_FRAMEBUFFER_CAPACITY;
+            buffer_frame_parity <= ~buffer_frame_parity;
         end
     end
 end
@@ -1671,17 +1669,19 @@ always @(*)
 begin
     case(i_OBJWR)
         1'b1: begin //sprite drawing period
-            EVENBUFFER_ADDR <= {buffer_frame_parity, buffer_ypos_counter, evenbuffer_xpos_counter[6:0]};
-            ODDBUFFER_ADDR  <= {buffer_frame_parity, buffer_ypos_counter, oddbuffer_xpos_counter[6:0]};
+            EVENBUFFER_ADDR <= {buffer_frame_parity | __SAVE_FRAMEBUFFER_CAPACITY, 
+                                buffer_ypos_counter, evenbuffer_xpos_counter[6:0]};
+            ODDBUFFER_ADDR  <= {buffer_frame_parity | __SAVE_FRAMEBUFFER_CAPACITY, 
+                                buffer_ypos_counter, oddbuffer_xpos_counter[6:0]};
         end
         1'b0: begin //active video period
-            EVENBUFFER_ADDR <= {buffer_frame_parity, buffer_y_screencounter ^ {8{i_FLIP}}, buffer_x_screencounter ^ {7{i_FLIP}}};
-            ODDBUFFER_ADDR  <= {buffer_frame_parity, buffer_y_screencounter ^ {8{i_FLIP}}, buffer_x_screencounter ^ {7{i_FLIP}}};
+            EVENBUFFER_ADDR <= {buffer_frame_parity | __SAVE_FRAMEBUFFER_CAPACITY, 
+                                buffer_y_screencounter ^ {8{i_FLIP}}, buffer_x_screencounter ^ {7{i_FLIP}}};
+            ODDBUFFER_ADDR  <= {buffer_frame_parity | __SAVE_FRAMEBUFFER_CAPACITY, 
+                                buffer_y_screencounter ^ {8{i_FLIP}}, buffer_x_screencounter ^ {7{i_FLIP}}};
         end
     endcase
 end
-
-
 
 
 
@@ -1698,6 +1698,9 @@ end
     as 1 and overwrite it with the existing data without updating the value.
 
     Need to delay 1 clk.
+
+    Note that Konami swapped the name of two signals on the Nemesis schematics.
+    XA is on the ODD(B) buffer, and vice versa. 
 */
 
 always @(posedge i_EMU_MCLK)
@@ -1708,8 +1711,6 @@ begin
         o_XB7 <= oddbuffer_xpos_counter[7];
     end
 end
-
-
 
 
 
