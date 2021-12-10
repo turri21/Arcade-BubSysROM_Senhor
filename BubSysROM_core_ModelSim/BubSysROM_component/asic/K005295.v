@@ -254,23 +254,23 @@ end
 ////
 
 /*
-                        FEEDBACK LOOP
-                    ┌─────────────────────────┐
-                    │                         │
-                    │   ┌─────┐     ┌─────┐   │
-                    │   │  A  │CLK─►│  D  │   │
-                    └─► │  D  │RST─►│  F  ├───┘
-                        │  D  │     │  F  │
-                        │  E  ├(+)─►│     │
-    ZOOM FACTOR ──────► │  R  │     │     ├────► PIXELSEL[2:0]
+                        FEEDBACK LOOP[9:0]
+                    ┌────────────────────────┐
+                    │                        │
+                    │   ┌─────┐     ┌─────┐  │
+                    │   │  A  │CLK─►│  D  │  │
+                    └─► │  D  │RST─►│  F  │  │
+                        │  D  │     │  F  │  │
+                        │  E  ├(+)─►│     ├──┴──► FEEDBACK_LOOP[9:7] = PIXELSEL[2:0]
+    ZOOM FACTOR ──────► │  R  │     │     │
                         │     │     │     │
                         └──┬──┘     └─────┘
                            │ CARRY
                            │        ┌─────┐
                            │   CLK─►│ LS  │
-                           |   RST─►│ 163 ├────► TILELINE_ADDR[2:0]
+                           |   RST─►│ 163 ├─────► TILELINE_ADDR[2:0]
                            └───────►│     │
-                                    └─────┘
+                            ENP/ENT └─────┘
 */
 
 reg             hzoom_cnt_n;
@@ -309,12 +309,12 @@ end
 ////
 
 /*
-    "tileline complete" 플래그는 피드백 어큐뮬레이터와 같은 신호로 스프라
-    이트의 타일라인(8픽셀 한 줄) 하나 그리기가 끝났음을 알립니다.
+    "tileline complete" flag is the carry output of hzoom feedback
+    accumulator. It notifies the end of the current tileline(8 pixels)
 
-    "hline complete" 플래그는 타일라인 카운터와 캐리가 AND되어, 피드백
-    어큐뮬레이터의 다음 값에서 캐리가 발생하는 경우 발생합니다. 즉, 스프라
-    이트의 한 라인 그리기가 끝났음을 알립니다.
+    "hline complete" flag notifies the end of current hline. The multiplexer
+    selects proper complete flag according to the width of the current
+    sprite.
 */
 
 reg             hline_complete;
@@ -342,27 +342,27 @@ end
 
 
 ///////////////////////////////////////////////////////////
-//////  VZOOM FEEDBACK COUNTER
+//////  VZOOM FEEDBACK ACCUMULATOR
 ////
 
 /*
-                        FEEDBACK LOOP
-                    ┌─────────────────────────┐
-                    │                         │
-                    │   ┌─────┐     ┌─────┐   │
-                    │   │  A  │CLK─►│  D  │   │
-                    └─► │  D  │RST─►│  F  ├───┘
-                        │  D  │     │  F  │
-                        │  E  ├(+)─►│     │
-    ZOOM FACTOR ──────► │  R  │     │     ├────► HLINE_ADDR[3:0]
+                        FEEDBACK LOOP[9:0]
+                    ┌────────────────────────┐
+                    │                        │
+                    │   ┌─────┐     ┌─────┐  │
+                    │   │  A  │CLK─►│  D  │  │
+                    └─► │  D  │RST─►│  F  │  │
+                        │  D  │     │  F  │  │
+                        │  E  ├(+)─►│     ├──┴──► FEEDBACK_LOOP[9:7] = HLINE_ADDR[2:0]
+    ZOOM FACTOR ──────► │  R  │     │     │
                         │     │     │     │
                         └──┬──┘     └─────┘
                            │ CARRY
                            │        ┌─────┐
                            │   CLK─►│ LS  │
-                           |   RST─►│ 163 ├────► VTILE_ADDR[4:0]
+                           |   RST─►│ 163 ├─────► VTILE_ADDR[3:0]
                            └───────►│     │
-                                    └─────┘
+                            ENP/ENT └─────┘
 */
 
 reg             vzoom_cnt_n;
@@ -403,11 +403,10 @@ end
 ////
 
 /*
-    "vtile_complete" 플래그는 현재 스프라이트 라인이 마지막이라 더 이상
-    그릴 필요가 없다는 의미를 나타냅니다. 피드백 래치에 현재 라인 숫자가
-    출력되지만, 현재 라인 숫자와 zoom factor를 더한 값이 덧셈기에서 다시
-    출력되고 있으므로 캐리가 1이면 다음 라인을 그리지 않아야 한다는 것을
-    미리 알 수 있습니다.
+    "vtile_complete" notifies the last hline of the sprite. It is ANDed with 
+    the carry output of the vzoom feedback accumulator, so the flag only 
+    appears on the drawing cycle of the last hline. Stops sprite drawing 
+    after vtile_complete + hline_complete were asserted.
 */
 
 reg             vtile_complete_n;
@@ -438,6 +437,9 @@ begin
         4'hF: vtile_complete_n <= vtile3_complete_n; //16*32    4 vetrical tiles
     endcase
 end
+
+
+
 
 
 
@@ -516,6 +518,9 @@ begin
         end
     end
 end
+
+
+
 
 
 
@@ -686,6 +691,22 @@ end
         FSM_SUSPEND at every rising edge of 2H. 
         Note that WRTIME2 and o_PIXELLATCH_WAIT_n will still be on the lines after a
         suspension, since they are just delayed signals from the shift registers. 
+*/
+
+/*
+    일단 스프라이트 속성부터 래치시킴 S0을 1픽셀동안 유지시키면 SR이 1H클럭에 맞춰 쭉
+    시프팅, 그동안 S1을 유지하는데 이때는 아무일도 안 함. S1이 끝나면 그리기를 시작하는데,
+    만약 서스펜드 플래그가 올라가있으면 대기상태로 들어감. 
+
+    쭉 그리는데, 확대/축소된 스프라이트의 경우 h어큐뮬레이터의 캐리가 픽셀 3에서 정확히 안
+    올라갈 때가 있음. 이럴 경우 캐리가 올라간 엣지의 다음 엣지에서 HWAIT상태로 들어감.
+    여기서 중요한 건 HCOUNT에서 캐리가 올라갔을 때(end_of_tileline) K5294쪽 MUX빠져나온 후
+    래치를 잠깐 정지시키는 latch_wait신호가 hsize_parity에 따라 다르다는 것임. 사라만다 
+    캡쳐에 이 경우가 없어서 3시간을 날렸다는 걸 잊지 말기
+
+    HWAIT때는 그냥 latch_wait으로 래칭을 정지. end_of_hline일때 가로사이즈가 홀수라면 먼저
+    들어온 픽셀이 아직 래치되지 않고 기다리는 중이므로 ODDSIZE를 4클럭동안 삽입. 이때 먼저
+    들어온 픽셀이 래치되고 기록됨.
 */
 
 //Declare states
