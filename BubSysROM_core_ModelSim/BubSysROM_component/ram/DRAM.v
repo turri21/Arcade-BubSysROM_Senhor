@@ -1,25 +1,34 @@
 /*
-    4416 DRAM
+    DRAM
 */
 
-module DRAM16k4_charram_px0
+module DRAM #( parameter
+	dw=8,          // data width
+	aw=8,          // address bus width (number of pins)
+	rw=aw,         // row width (usually address but width)
+	cw=aw,         // column width (address but width or shorter)
+	ctop=cw-1,     // index in address where MSB of col is
+	cbot=0,        // index in address where LSB of col is
+	simhexfile="",
+	init=0
+)
 (
     input   wire            i_MCLK,
-	input   wire    [7:0]   i_ADDR,
-	input   wire    [3:0]   i_DIN,
-	output  reg     [3:0]   o_DOUT,
+	input   wire  [aw-1:0]  i_ADDR,
+	input   wire  [dw-1:0]  i_DIN,
+	output  reg   [dw-1:0]  o_DOUT,
     input   wire            i_RAS_n,
     input   wire            i_CAS_n,
 	input   wire            i_WR_n,
 	input   wire            i_RD_n
 );
 
-reg     [3:0]   RAM16k4 [16383:0];
-reg             prev_ras;
-reg             prev_cas;
-reg     [7:0]   ROW_ADDR;
-reg     [5:0]   COL_ADDR;
-wire    [13:0]  ADDR = {COL_ADDR, ROW_ADDR};
+reg   [dw-1:0]     RAM [0:(2**(rw+cw))-1];
+reg                prev_ras;
+reg                prev_cas;
+reg   [rw-1:0]     ROW_ADDR;
+reg   [cw-1:0]     COL_ADDR;
+wire  [rw+cw-1:0]  ADDR = {COL_ADDR, ROW_ADDR};
 
 /*
     MCLK                                    1 1
@@ -51,7 +60,7 @@ begin
 
     if(i_CAS_n == 1'b0 && prev_cas == 1'b1)
     begin
-        COL_ADDR <= i_ADDR[6:1];
+        COL_ADDR <= i_ADDR[ctop:cbot];
     end
 end
 
@@ -60,7 +69,7 @@ always @(posedge i_MCLK)
 begin
     if(i_WR_n == 1'b0)
     begin
-        RAM16k4[ADDR] <= i_DIN;
+        RAM[ADDR] <= i_DIN;
     end
 end
 
@@ -68,13 +77,25 @@ always @(posedge i_MCLK) //read
 begin
     if(i_RD_n == 1'b0)
     begin
-        o_DOUT <= RAM16k4[ADDR];
+        o_DOUT <= RAM[ADDR];
     end
 end
 
+integer i;
+
 initial
 begin
-    $readmemh("init_charram_px0.txt", RAM16k4);
+    if( simhexfile != "" )
+	begin
+        $readmemh(simhexfile, RAM);
+    end
+	else if( init != 0 )
+	begin
+		for(i = 0; i < 2**(rw+cw); i = i + 1)
+		begin
+			RAM[i] <= {dw{1'b0}};
+		end
+	end
 end
 
 endmodule

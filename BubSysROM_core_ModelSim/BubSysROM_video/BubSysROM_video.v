@@ -507,7 +507,12 @@ wire            scrollram_wr = (i_VZCS_n | i_CPU_RW | i_CPU_LDS_n | TIME2);
 
 //declare SCROLLRAM
 wire    [7:0]   scrollram_dout;
-SRAM2k8_scroll SCROLLRAM_LOW
+SRAM #(
+    .aw( 11 ),
+    .dw(  8 ),
+    .simhexfile("init_scrollram.txt")
+)
+SCROLLRAM_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (scrollram_addr             ),
@@ -615,7 +620,12 @@ wire            vram2l_wr = (i_VCS2_n | i_CPU_RW | i_CPU_LDS_n | ABS_1H | ABS_2H
 
 //declare vram1
 wire    [15:0]  vram1_dout;
-SRAM4k8_vram1_high VRAM1_HIGH
+SRAM #(
+    .aw( 12 ),
+    .dw(  8 ),
+    .simhexfile("init_vram1_high.txt")
+)
+VRAM1_HIGH
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
@@ -625,7 +635,12 @@ SRAM4k8_vram1_high VRAM1_HIGH
     .i_RD_n                     (VRTIME                     )
 );
 
-SRAM4k8_vram1_low VRAM1_LOW
+SRAM #(
+    .aw( 12 ),
+    .dw(  8 ),
+    .simhexfile("init_vram1_low.txt")
+)
+VRAM1_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
@@ -637,7 +652,12 @@ SRAM4k8_vram1_low VRAM1_LOW
 
 //declare vram2
 wire    [7:0]   vram2_dout;
-SRAM4k8_vram2 VRAM2_LOW
+SRAM #(
+    .aw( 12 ),
+    .dw(  8 ),
+    .simhexfile("init_vram2.txt")
+)
+VRAM2_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
@@ -730,7 +750,12 @@ wire            objram_wr = |{i_OBJRAM_n, i_CPU_RW, i_CPU_LDS_n, TIME2}; //LS32*
 
 //declare OBJRAM
 wire    [7:0]   objram_dout;
-SRAM2k8_obj OBJRAM_LOW
+SRAM #(
+    .aw( 11 ),
+    .dw(  8 ),
+    .simhexfile("init_objram.txt")
+)
+OBJRAM_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (objram_addr                ),
@@ -794,7 +819,11 @@ wire            objtable_wr = ~(ABS_1H & ~DMA_n);
 
 //declare objtable ram
 wire    [7:0]   objtable_dout;
-SRAM2k8 OBJTABLE
+SRAM #(
+    .aw( 11 ),
+    .dw(  8 )
+)
+OBJTABLE
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (objtable_addr              ),
@@ -988,7 +1017,16 @@ wire            charram2l_wr = charraml_en | charram2_rw;
 //declare charram
 wire    [15:0]  charram1_dout; //A1=0
 wire    [15:0]  charram2_dout; //A1=1
-DRAM16k4_charram_px0 CHARRAM_PX0 //6B
+DRAM #(
+    .dw( 4 ),
+    .aw( 8 ),
+    .rw( 8 ),
+    .cw( 6 ),
+    .ctop( 6 ),
+    .cbot( 1 ),
+    .simhexfile("init_charram_px0.txt")
+)
+CHARRAM_PX0 //6B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -999,7 +1037,16 @@ DRAM16k4_charram_px0 CHARRAM_PX0 //6B
     .i_WR_n                     (charram1u_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4_charram_px1 CHARRAM_PX1 //6A
+DRAM #(
+    .dw( 4 ),
+    .aw( 8 ),
+    .rw( 8 ),
+    .cw( 6 ),
+    .ctop( 6 ),
+    .cbot( 1 ),
+    .simhexfile("init_charram_px1.txt")
+)
+CHARRAM_PX1 //6A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -1010,7 +1057,16 @@ DRAM16k4_charram_px1 CHARRAM_PX1 //6A
     .i_WR_n                     (charram1u_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4_charram_px2 CHARRAM_PX2 //2B
+DRAM #(
+    .dw( 4 ),
+    .aw( 8 ),
+    .rw( 8 ),
+    .cw( 6 ),
+    .ctop( 6 ),
+    .cbot( 1 ),
+    .simhexfile("init_charram_px2.txt")
+)
+CHARRAM_PX2 //2B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -1021,7 +1077,16 @@ DRAM16k4_charram_px2 CHARRAM_PX2 //2B
     .i_WR_n                     (charram1l_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4_charram_px3 CHARRAM_PX3 //2A
+DRAM #(
+    .dw( 4 ),
+    .aw( 8 ),
+    .rw( 8 ),
+    .cw( 6 ),
+    .ctop( 6 ),
+    .cbot( 1 ),
+    .simhexfile("init_charram_px3.txt")
+)
+CHARRAM_PX3 //2A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -1032,7 +1097,16 @@ DRAM16k4_charram_px3 CHARRAM_PX3 //2A
     .i_WR_n                     (charram1l_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4_charram_px4 CHARRAM_PX4 //7B
+DRAM #(
+    .dw( 4 ),
+    .aw( 8 ),
+    .rw( 8 ),
+    .cw( 6 ),
+    .ctop( 6 ),
+    .cbot( 1 ),
+    .simhexfile("init_charram_px4.txt")
+)
+CHARRAM_PX4 //7B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -1043,7 +1117,16 @@ DRAM16k4_charram_px4 CHARRAM_PX4 //7B
     .i_WR_n                     (charram2u_wr               ),
     .i_RD_n                     (charram2_rd                )
 );
-DRAM16k4_charram_px5 CHARRAM_PX5 //7A
+DRAM #(
+    .dw( 4 ),
+    .aw( 8 ),
+    .rw( 8 ),
+    .cw( 6 ),
+    .ctop( 6 ),
+    .cbot( 1 ),
+    .simhexfile("init_charram_px5.txt")
+)
+CHARRAM_PX5 //7A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -1054,7 +1137,16 @@ DRAM16k4_charram_px5 CHARRAM_PX5 //7A
     .i_WR_n                     (charram2u_wr               ),
     .i_RD_n                     (charram2_rd                )
 );
-DRAM16k4_charram_px6 CHARRAM_PX6 //4B
+DRAM #(
+    .dw( 4 ),
+    .aw( 8 ),
+    .rw( 8 ),
+    .cw( 6 ),
+    .ctop( 6 ),
+    .cbot( 1 ),
+    .simhexfile("init_charram_px6.txt")
+)
+CHARRAM_PX6 //4B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -1065,7 +1157,16 @@ DRAM16k4_charram_px6 CHARRAM_PX6 //4B
     .i_WR_n                     (charram2l_wr               ),
     .i_RD_n                     (charram2_rd                )
 );
-DRAM16k4_charram_px7 CHARRAM_PX7 //4A
+DRAM #(
+    .dw( 4 ),
+    .aw( 8 ),
+    .rw( 8 ),
+    .cw( 6 ),
+    .ctop( 6 ),
+    .cbot( 1 ),
+    .simhexfile("init_charram_px7.txt")
+)
+CHARRAM_PX7 //4A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -1244,20 +1345,30 @@ wire    [7:0]   oddbuffer_din =     (OBJCLR == 1'b1) ? 8'h00 :
                                     
 
 //EVEN
-DRAM64k8 EVENBUF 
+DRAM #(
+    .dw( 8 ),
+    .aw( 8 ),
+    .init( 1 )
+)
+EVENBUF 
 (
     .i_MCLK (i_EMU_MCLK), .i_ADDR (FA),
     .i_DIN (evenbuffer_din), .o_DOUT (evenbuffer_dout), 
-    .i_RAS_n (objbuf_ras_n), .i_CAS_n (~OBJBUF_CAS), .i_WR_n (objbuf_we_n) 
+    .i_RAS_n (objbuf_ras_n), .i_CAS_n (~OBJBUF_CAS), .i_WR_n (objbuf_we_n), .i_RD_n (1'b0) 
 );
 
 
 //ODD
-DRAM64k8 ODDBUF 
+DRAM #(
+    .dw( 8 ),
+    .aw( 8 ),
+    .init( 1 )
+)
+ODDBUF 
 (
     .i_MCLK (i_EMU_MCLK), .i_ADDR (FB),
     .i_DIN (oddbuffer_din), .o_DOUT (oddbuffer_dout), 
-    .i_RAS_n (objbuf_ras_n), .i_CAS_n (~OBJBUF_CAS), .i_WR_n (objbuf_we_n) 
+    .i_RAS_n (objbuf_ras_n), .i_CAS_n (~OBJBUF_CAS), .i_WR_n (objbuf_we_n), .i_RD_n (1'b0)
 );
 
 
