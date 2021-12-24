@@ -764,7 +764,14 @@ begin
                     begin
                         if(FSM_SUSPEND == 1'b0) //keep going
                         begin
-                            sprite_engine_state <= ATTR_LATCHING_S0;
+                            if(hsize_parity == 1'b0) //zoomed horizontal size is even
+                            begin
+                                sprite_engine_state <= ATTR_LATCHING_S0;
+                            end
+                            else
+                            begin
+                                sprite_engine_state <= ODDSIZE_S0;
+                            end
                         end
                         else //if not, go suspend_s0
                         begin
@@ -1058,20 +1065,35 @@ begin
             end
             else if(drawing_status == END_OF_HLINE)
             begin
-                if(pixel3_n == 1'b0) //pixel 3
+                if(hsize_parity == 1'b0) //after drawing even pixels
                 begin
-                    hzoom_cnt_n <= 1'b1;
-                    hzoom_rst_n <= 1'b0;
+                    if(pixel3_n == 1'b0) //pixel 3
+                    begin
+                        hzoom_cnt_n <= 1'b1;
+                        hzoom_rst_n <= 1'b0;
 
-                    vzoom_cnt_n <= 1'b0;
-                    vzoom_rst_n <= 1'b1;
+                        vzoom_cnt_n <= 1'b0;
+                        vzoom_rst_n <= 1'b1;
 
-                    ypos_cnt_n <= 1'b0;
+                        ypos_cnt_n <= 1'b0;
 
-                    pixellatch_wait_n <= 1'b1;
+                        pixellatch_wait_n <= 1'b0;
+                    end
+                    else
+                    begin //before pixel 3
+                        hzoom_cnt_n <= 1'b1;
+                        hzoom_rst_n <= 1'b1;
+
+                        vzoom_cnt_n <= 1'b1;
+                        vzoom_rst_n <= 1'b1;
+
+                        ypos_cnt_n <= 1'b1;
+
+                        pixellatch_wait_n <= 1'b0;
+                    end 
                 end
-                else
-                begin //before pixel 3
+                else //after drawing odd pixles: will go to ODDSIZE_S0
+                begin
                     hzoom_cnt_n <= 1'b1;
                     hzoom_rst_n <= 1'b1;
 
@@ -1080,8 +1102,9 @@ begin
 
                     ypos_cnt_n <= 1'b1;
 
-                    pixellatch_wait_n <= 1'b0;
-                end     
+                    pixellatch_wait_n <= 1'b1; //very important
+                end
+                   
             end
             else if(drawing_status[1:0] == END_OF_TILELINE)
             begin
@@ -1413,7 +1436,7 @@ begin
 
                     ypos_cnt_n <= 1'b1;
 
-                    pixellatch_wait_n <= 1'b0;
+                    pixellatch_wait_n <= 1'b1;
                 end
                 else
                 begin //before pixel 3
@@ -1440,7 +1463,7 @@ begin
 
                     ypos_cnt_n <= 1'b1;
 
-                    pixellatch_wait_n <= 1'b0;
+                    pixellatch_wait_n <= 1'b1;
                 end
                 else
                 begin //before pixel 3
