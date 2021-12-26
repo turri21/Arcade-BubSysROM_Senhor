@@ -1077,7 +1077,7 @@ begin
 
                         ypos_cnt_n <= 1'b0;
 
-                        pixellatch_wait_n <= 1'b0;
+                        pixellatch_wait_n <= 1'b1;
                     end
                     else
                     begin //before pixel 3
@@ -1092,17 +1092,32 @@ begin
                         pixellatch_wait_n <= 1'b0;
                     end 
                 end
-                else //after drawing odd pixles: will go to ODDSIZE_S0
+                else 
                 begin
-                    hzoom_cnt_n <= 1'b1;
-                    hzoom_rst_n <= 1'b1;
+                    if(pixel3_n == 1'b0) //pixel 3, after drawing odd pixles: will go to ODDSIZE_S0
+                    begin
+                        hzoom_cnt_n <= 1'b1;
+                        hzoom_rst_n <= 1'b1;
 
-                    vzoom_cnt_n <= 1'b1;
-                    vzoom_rst_n <= 1'b1;
+                        vzoom_cnt_n <= 1'b1;
+                        vzoom_rst_n <= 1'b1;
 
-                    ypos_cnt_n <= 1'b1;
+                        ypos_cnt_n <= 1'b1;
 
-                    pixellatch_wait_n <= 1'b1; //very important
+                        pixellatch_wait_n <= 1'b1; //latch immediately
+                    end
+                    else
+                    begin //before pixel 3, will go to HWAIT_S0
+                        hzoom_cnt_n <= 1'b1;
+                        hzoom_rst_n <= 1'b1;
+
+                        vzoom_cnt_n <= 1'b1;
+                        vzoom_rst_n <= 1'b1;
+
+                        ypos_cnt_n <= 1'b1;
+
+                        pixellatch_wait_n <= 1'b0; //will be latched on pixel3 of HWAIT_S0
+                    end 
                 end
                    
             end
@@ -1118,7 +1133,7 @@ begin
 
                     ypos_cnt_n <= 1'b1;
 
-                    pixellatch_wait_n <= 1'b1;
+                    pixellatch_wait_n <= 1'b1; //latch anyway
                 end
                 else
                 begin //before pixel 3
@@ -1130,7 +1145,8 @@ begin
 
                     ypos_cnt_n <= 1'b1;
 
-                    pixellatch_wait_n <= 1'b0 | ~hsize_parity;
+                    pixellatch_wait_n <= ~hsize_parity; //odd size = wait for the even pixel, 
+                                                        //even size = latch(=do not need to be latched, will be drawn immediately)
                 end
             end
             else //`KEEP_DRAWING
