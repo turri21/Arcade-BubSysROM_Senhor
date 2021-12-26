@@ -44,7 +44,7 @@ always @(posedge i_EMU_MCLK) begin
                 end      
 
                 $display("Start of frame %d", frame); //debug message
-                frame = frame + 16'd1;
+                
             end
             else if(i_HCOUNTER == 9'd277) begin
                 $fseek(fd, BITMAP_LINE_ADDRESS, 0); //set current line address
@@ -57,6 +57,9 @@ always @(posedge i_EMU_MCLK) begin
             end
             else if(i_VCOUNTER == 9'd495 && i_HCOUNTER == 9'd151) begin
                 $fclose(fd); //close this frame
+                $display("Frame %d saved", frame); //debug message
+                
+                frame = frame + 16'd1;
             end
             else begin
                 

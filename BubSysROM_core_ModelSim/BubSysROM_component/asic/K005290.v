@@ -34,7 +34,7 @@ module K005290
 
 
 ///////////////////////////////////////////////////////////
-//////  PIXEL DATA LATCH
+//////  TILELINE LATCH
 ////
 
 //
@@ -64,7 +64,7 @@ wire            pixel7_n = ~(i_ABS_2H & ABS_2H_dl & ~i_ABS_n4H);
 
 
 //
-//  pixel latches
+//  tileline latches
 //
 
 /*
@@ -73,8 +73,8 @@ wire            pixel7_n = ~(i_ABS_2H & ABS_2H_dl & ~i_ABS_n4H);
     DRAM     A     B     C     D     E     F     G     H
 */
 
-reg     [31:0]  A_LINELATCH;
-reg     [31:0]  B_LINELATCH;
+reg     [31:0]  A_TILELINELATCH;
+reg     [31:0]  B_TILELINELATCH;
 
 always @(posedge i_EMU_MCLK)
 begin
@@ -82,7 +82,7 @@ begin
     begin
         if(!pixel7_n) //posedge of px7
         begin
-            A_LINELATCH <= i_GFXDATA;
+            A_TILELINELATCH <= i_GFXDATA;
         end
     end
 end
@@ -93,7 +93,7 @@ begin
     begin
         if(!pixel3_n) //posedge of px3
         begin
-            B_LINELATCH <= i_GFXDATA;
+            B_TILELINELATCH <= i_GFXDATA;
         end
     end
 end
@@ -162,14 +162,14 @@ begin
                 A_PIXEL7 <= 4'h0;    
             end
             2'b11: begin
-                A_PIXEL0 <= A_LINELATCH[31:28];
-                A_PIXEL1 <= A_LINELATCH[27:24];
-                A_PIXEL2 <= A_LINELATCH[23:20];
-                A_PIXEL3 <= A_LINELATCH[19:16];
-                A_PIXEL4 <= A_LINELATCH[15:12];
-                A_PIXEL5 <= A_LINELATCH[11:8];
-                A_PIXEL6 <= A_LINELATCH[7:4];
-                A_PIXEL7 <= A_LINELATCH[3:0];
+                A_PIXEL0 <= A_TILELINELATCH[31:28];
+                A_PIXEL1 <= A_TILELINELATCH[27:24];
+                A_PIXEL2 <= A_TILELINELATCH[23:20];
+                A_PIXEL3 <= A_TILELINELATCH[19:16];
+                A_PIXEL4 <= A_TILELINELATCH[15:12];
+                A_PIXEL5 <= A_TILELINELATCH[11:8];
+                A_PIXEL6 <= A_TILELINELATCH[7:4];
+                A_PIXEL7 <= A_TILELINELATCH[3:0];
             end
         endcase
     end
@@ -238,14 +238,14 @@ begin
                 B_PIXEL7 <= 4'h0;
             end
             2'b11: begin
-                B_PIXEL0 <= B_LINELATCH[31:28];
-                B_PIXEL1 <= B_LINELATCH[27:24];
-                B_PIXEL2 <= B_LINELATCH[23:20];
-                B_PIXEL3 <= B_LINELATCH[19:16];
-                B_PIXEL4 <= B_LINELATCH[15:12];
-                B_PIXEL5 <= B_LINELATCH[11:8];
-                B_PIXEL6 <= B_LINELATCH[7:4];
-                B_PIXEL7 <= B_LINELATCH[3:0];
+                B_PIXEL0 <= B_TILELINELATCH[31:28];
+                B_PIXEL1 <= B_TILELINELATCH[27:24];
+                B_PIXEL2 <= B_TILELINELATCH[23:20];
+                B_PIXEL3 <= B_TILELINELATCH[19:16];
+                B_PIXEL4 <= B_TILELINELATCH[15:12];
+                B_PIXEL5 <= B_TILELINELATCH[11:8];
+                B_PIXEL6 <= B_TILELINELATCH[7:4];
+                B_PIXEL7 <= B_TILELINELATCH[3:0];
             end
         endcase
     end

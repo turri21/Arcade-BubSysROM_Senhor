@@ -124,51 +124,33 @@ wire            HBLANK_n;
 wire            VBLANK_n;
 assign          o_VBLANK_n = VBLANK_n;
 wire            VBLANKH_n;
+wire            VCLK;
+wire            CSYNC_n;
 
-wire            ABS_256H;
+//hcounter
+wire            ABS_256H,   
+                ABS_128H,   ABS_64H,    ABS_32H,    ABS_16H,
+                ABS_8H,     ABS_4H,     ABS_2H,     ABS_1H;
+
+wire            FLIP_128H,  FLIP_64H,   FLIP_32H,   FLIP_16H,
+                FLIP_8H,    FLIP_4H,    FLIP_2H,    FLIP_1H;
+
+//vcounter
+wire            ABS_128V,   ABS_64V,    ABS_32V,    ABS_16V,
+                ABS_8V,     ABS_4V,     ABS_2V,     ABS_1V;
+
+wire            FLIP_128V,  FLIP_64V,   FLIP_32V,   FLIP_16V,
+                FLIP_8V,    FLIP_4V,    FLIP_2V,    FLIP_1V;
+
+//misc
 wire            ABS_n256H = ~ABS_256H;
-wire            ABS_128H;
-wire            ABS_64H;
-wire            ABS_32H;
-wire            ABS_16H;
-wire            ABS_8H;
-wire            ABS_4H;
-wire            ABS_2H;
-wire            ABS_1H;
 wire            ABS_n1H = ~ABS_1H;
 wire            ABS_128HA = (ABS_256H & ABS_128H) | (ABS_n256H & ABS_32H);
 
-wire            ABS_128V;
-wire            ABS_64V;
-wire            ABS_32V;
-wire            ABS_16V;
-wire            ABS_8V;
-wire            ABS_4V;
-wire            ABS_2V;
-wire            ABS_1V;
-
 wire            FLIP_n256H  = ABS_n256H ^ i_HFLIP;
-wire            FLIP_128H;
-wire            FLIP_64H;
-wire            FLIP_32H;
-wire            FLIP_16H;
-wire            FLIP_8H;
-wire            FLIP_4H;
-wire            FLIP_2H;
-wire            FLIP_1H;
 
-wire            FLIP_128V;
-wire            FLIP_64V;
-wire            FLIP_32V;
-wire            FLIP_16V;
-wire            FLIP_8V;
-wire            FLIP_4V;
-wire            FLIP_2V;
-wire            FLIP_1V;
+wire            DMA_n = ~&{ABS_128V, ABS_64V, ABS_32V, ~ABS_16V}; //16C NAND; vcounter 480-495
 
-wire            VCLK;
-
-wire            CSYNC_n;
 
 //declare K005292 core: this core does not have LS393 sprite code up counter
 K005292 K005292_main
@@ -227,11 +209,38 @@ K005292 K005292_main
     .o_FRAMEPARITY              (                           ), //256V
     
     .o_VSYNC_n                  (o_VSYNC_n                  ),
-    .o_CSYNC_n                  (CSYNC_n                    ),
+    .o_CSYNC                    (CSYNC_n                    ),
 
     .__REF_HCOUNTER             (__REF_HCOUNTER             ),
     .__REF_VCOUNTER             (__REF_VCOUNTER             )
 );
+
+//fully asynchronous shit in K005292(modded)
+wire            ORINC;
+reg     [7:0]   OBJ;
+wire            objcntr_tick = ORINC | (&{OBJ[7:4]});
+
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MPCEN_n)
+    begin
+        if(ABS_1H == 1'b0) //posedge of 1H
+        begin
+            if(DMA_n == 1'b0)
+            begin
+                OBJ <= 8'd0;
+            end
+            else
+            begin
+                if(objcntr_tick == 1'b0)
+                begin
+                    OBJ <= OBJ + 8'd1;
+                end
+            end
+        end        
+    end
+end
+
 
 
 //
@@ -313,7 +322,7 @@ always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK18MNCEN_n)
     begin
-        CHAMPX2 = CHAMPX;
+        CHAMPX2 <= CHAMPX;
     end
 end
 
@@ -323,7 +332,7 @@ end
 //
 
 //timing singals
-wire            OBJRW;  //switches mux between active display+buffer clear/005295 write
+wire            OBJWR;  //switches mux between active display+buffer clear/005295 write
 wire            OBJCLR; //fix mux output as 0 when clearing the buffer by writing 0s
 
 //19H LS74A
@@ -343,9 +352,9 @@ end
 reg             DFF_19H_B;
 always @(posedge i_EMU_MCLK)
 begin
-    if(!o_EMU_CLK6MNCEN_n) //negedge cen
+    if(!o_EMU_CLK6MPCEN_n) //negedge cen
     begin
-        if(ABS_1H == 1'b0) //every EVEN pixel
+        if(ABS_1H == 1'b1) //every ODD pixel
         begin
             DFF_19H_B <= DFF_19H_A;
         end        
@@ -385,7 +394,7 @@ begin
     end
 end
 
-assign  OBJRW = DFF_19H_B;
+assign  OBJWR = DFF_19H_B;
 assign  OBJCLR = ~DFF_19H_B;
 assign  o_BLK = DFF_17A_A;
 
@@ -477,7 +486,8 @@ wire            scrollram_wr = (i_VZCS_n | i_CPU_RW | i_CPU_LDS_n | TIME2);
 
 //declare SCROLLRAM
 wire    [7:0]   scrollram_dout;
-SRAM2k8_scroll SCROLLRAM_LOW
+SRAM #(.aw( 11 ), .dw(  8 ), .simhexfile("init_scrollram.txt"))
+SCROLLRAM_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (scrollram_addr             ),
@@ -585,7 +595,8 @@ wire            vram2l_wr = (i_VCS2_n | i_CPU_RW | i_CPU_LDS_n | ABS_1H | ABS_2H
 
 //declare vram1
 wire    [15:0]  vram1_dout;
-SRAM4k8_vram1_high VRAM1_HIGH
+SRAM #(.aw( 12 ), .dw(  8 ), .simhexfile("init_vram1_high.txt"))
+VRAM1_HIGH
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
@@ -595,7 +606,8 @@ SRAM4k8_vram1_high VRAM1_HIGH
     .i_RD_n                     (VRTIME                     )
 );
 
-SRAM4k8_vram1_low VRAM1_LOW
+SRAM #(.aw( 12 ), .dw(  8 ), .simhexfile("init_vram1_low.txt"))
+VRAM1_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
@@ -607,7 +619,8 @@ SRAM4k8_vram1_low VRAM1_LOW
 
 //declare vram2
 wire    [7:0]   vram2_dout;
-SRAM4k8_vram2 VRAM2_LOW
+SRAM #(.aw( 12 ), .dw(  8 ), .simhexfile("init_vram2.txt"))
+VRAM2_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (vram_addr                  ),
@@ -653,28 +666,7 @@ wire    [3:0]   PR = vram1_dout[15:12];
 wire    [7:0]   VCA;
 wire    [13:0]  __REF_VCA_ORIGINAL = {tile_code, line_addr ^ {3{VVFF}}};
 assign  VCA =   (CHAMPX2 == 1'b0) ?
-                    {   //RAS
-                        tile_code[4], 
-                        tile_code[3],
-                        tile_code[2],
-                        tile_code[1],
-                        tile_code[0],
-                        line_addr[2] ^ VVFF,
-                        line_addr[1] ^ VVFF,
-                        line_addr[0] ^ VVFF
-                    } :
-                    {   //CAS
-                        1'b1,
-                        tile_code[10],
-                        tile_code[9],
-                        tile_code[8],
-                        tile_code[7],
-                        tile_code[6],
-                        tile_code[5],
-                        1'b1                        
-                    };
-
-
+                    {tile_code[4:0], line_addr[2:0] ^ {3{VVFF}}} : {1'b1, tile_code[10:5], 1'b1}; //RAS : CAS
 
 
 
@@ -686,7 +678,7 @@ assign  VCA =   (CHAMPX2 == 1'b0) ?
 ////
 
 //
-//  SPRITE NAMETABLE SECTION
+//  OBJRAM SECTION
 //
 
 //make objram address
@@ -700,7 +692,8 @@ wire            objram_wr = |{i_OBJRAM_n, i_CPU_RW, i_CPU_LDS_n, TIME2}; //LS32*
 
 //declare OBJRAM
 wire    [7:0]   objram_dout;
-SRAM2k8_obj OBJRAM_LOW
+SRAM #(.aw( 11 ), .dw(  8 ), .simhexfile("init_objram.txt"))
+OBJRAM_LOW
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (objram_addr                ),
@@ -725,8 +718,7 @@ LOGIC373 OBJRAM_CPULATCH
 //  SPRITE DMA SECTION
 //
 
-wire            dma = ~&{ABS_128V, ABS_64V, ABS_32V, ~ABS_16V}; //16C NAND; vcounter 480-495
-
+//19G LS273
 reg     [7:0]   obj_priority;
 always @(posedge i_EMU_MCLK)
 begin
@@ -739,22 +731,107 @@ begin
     end
 end
 
+//17G LS374
 reg     [7:0]   obj_attr;
 always @(posedge i_EMU_MCLK)
 begin
     if(!o_EMU_CLK6MPCEN_n)
     begin
-        if(ABS_1H == 1'b0) //posedge of 1H
+        if(ABS_1H == 1'b1) //posedge of /px1
         begin
            obj_attr <= objram_dout;
         end
     end
 end
 
+//make objtable address
+wire    [2:0]   ORA;
+wire    [10:0]  objtable_addr;
+assign  objtable_addr = (DMA_n == 1'b0) ? 
+                            {obj_priority, ABS_8H, ABS_4H, ABS_2H} :
+                            {OBJ, ORA};
 
 
+//make objtable_wr
+wire            objtable_wr = ~(ABS_1H & ~DMA_n);
+
+//declare objtable ram
+wire    [7:0]   objtable_dout;
+SRAM #(.aw( 11 ), .dw(  8 ))
+OBJTABLE
+(
+    .i_MCLK                     (i_EMU_MCLK                 ),
+    .i_ADDR                     (objtable_addr              ),
+    .i_DIN                      (obj_attr                   ),
+    .o_DOUT                     (objtable_dout              ),
+    .i_WR_n                     (objtable_wr                ),
+    .i_RD_n                     (1'b0                       )
+);
 
 
+//
+//  asic section
+//
+
+wire    [7:0]   OCA;
+wire            CHAOV;
+reg             OBJHL;
+
+wire    [7:0]   FA, FB;
+wire            XA7, XB7;
+wire            OBJBUF_CAS;
+
+wire            WRTIME2;
+wire            COLORLATCH_n;
+wire            XPOS_D0;
+wire            PIXELLATCH_WAIT_n;
+wire            LATCH_A_D2;
+wire    [2:0]   PIXELSEL;
+
+
+//declare K005295 core
+K005295 #(.__ENABLE_DOUBLE_HEIGHT_MODE(1'b0), .__SAVE_FRAMEBUFFER_CAPACITY(1'b1))
+K005295_main
+(
+    .i_EMU_MCLK                 (i_EMU_MCLK                 ),
+    .i_EMU_CLK6MPCEN_n          (o_EMU_CLK6MPCEN_n          ),
+
+    .i_DMA_n                    (DMA_n                      ),
+    .i_VBLANKH_n                (VBLANKH_n                  ),
+    .i_VBLANK_n                 (VBLANK_n                   ),
+    .i_HBLANK_n                 (HBLANK_n                   ),
+    .i_ABS_4H                   (ABS_4H                     ),
+    .i_ABS_2H                   (ABS_2H                     ),
+    .i_ABS_1H                   (ABS_1H                     ),
+    .i_CHAMPX                   (CHAMPX2                    ),
+    .i_OBJWR                    (OBJWR                      ),
+
+    .i_FLIP                     (i_HFLIP                    ),
+
+    .i_OBJDATA                  (objtable_dout              ),
+    .o_ORA                      (ORA                        ),
+
+    .o_CAS                      (OBJBUF_CAS                 ),
+
+    .o_FA                       (FA                         ),
+    .o_FB                       (FB                         ),
+
+    .o_XA7                      (XA7                        ),
+    .o_XB7                      (XB7                        ),
+
+    .i_OBJHL                    (OBJHL                      ),
+    .o_CHAOV                    (CHAOV                      ),
+    .o_ORINC                    (ORINC                      ),
+    
+    .o_WRTIME2                  (WRTIME2                    ),
+    .o_COLORLATCH_n             (COLORLATCH_n               ),
+    .o_XPOS_D0                  (XPOS_D0                    ),
+    .o_PIXELLATCH_WAIT_n        (PIXELLATCH_WAIT_n          ),
+    .o_LATCH_A_D2               (LATCH_A_D2                 ),
+    .o_PIXELSEL                 (PIXELSEL                   ),
+
+    .o_OCA                      (OCA                        )
+);
 
 
 
@@ -799,31 +876,11 @@ wire    [7:0]   cpu_addr;
 assign  cpu_addr =  (i_CHACS_n == 1'b1) ?
                         refresh_addr :
                         (CHAMPX2 == 1'b0) ?
-                            {   //RAS
-                                i_CPU_ADDR[8], //A9
-                                i_CPU_ADDR[7], //A8
-                                i_CPU_ADDR[6], //A7
-                                i_CPU_ADDR[5], //A6
-                                i_CPU_ADDR[4], //A5
-                                i_CPU_ADDR[3], //A4
-                                i_CPU_ADDR[2], //A3
-                                i_CPU_ADDR[1]  //A2
-                            } :
-                            {   //CAS
-                                1'b1,           //HIGH
-                                i_CPU_ADDR[14], //A15
-                                i_CPU_ADDR[13], //A14
-                                i_CPU_ADDR[12], //A13
-                                i_CPU_ADDR[11], //A12
-                                i_CPU_ADDR[10], //A11
-                                i_CPU_ADDR[9],  //A10
-                                1'b1            //HIGH
-                            };
+                            i_CPU_ADDR[8:1] : {1'b1, i_CPU_ADDR[14:9], 1'b1}; //RAS(A9-A2) : CAS(1, A15-A10, 1)
 
 //LS157*2 11A/B MUX
 wire    [7:0]   gfx_addr;
-assign  gfx_addr = VCA;
-//assign  gfx_addr = (CHAOV_n == 1'b0) ? VCA : OCA;
+assign  gfx_addr = (CHAOV == 1'b0) ? OCA : VCA;
 
 //LS157*2 10A/B MUX
 wire    [7:0]   charram_addr;
@@ -836,7 +893,7 @@ assign  charram_addr =  (~ABS_2H == 1'b0) ? gfx_addr : cpu_addr;
 
 //RAS/CAS
 wire            charram_ras_n = ~CHAMPX;
-reg             charram_cas_n = 1'b1; //54.25ns delayed RAS
+reg             charram_cas_n = 1'b1; //54.25ns delayed RAS, same as CHAMPX2
 always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK18MNCEN_n)
@@ -870,13 +927,15 @@ wire            charram2_rd = ~charram2_rw; //disables output when reading
 wire            charram1u_wr = charramu_en | charram1_rw;
 wire            charram1l_wr = charraml_en | charram1_rw;
 wire            charram2u_wr = charramu_en | charram2_rw;
-wire            charram2l_wr = charramu_en | charram2_rw;
+wire            charram2l_wr = charraml_en | charram2_rw;
 
 
 //declare charram
 wire    [15:0]  charram1_dout; //A1=0
 wire    [15:0]  charram2_dout; //A1=1
-DRAM16k4_charram_px0 CHARRAM_PX0 //6B
+DRAM #(.dw( 4 ), .aw( 8 ), .rw( 8 ), .cw( 6 ), .ctop( 6 ), .cbot( 1 ),
+       .simhexfile("init_charram_px0.txt"))
+CHARRAM_PX0 //6B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -887,7 +946,10 @@ DRAM16k4_charram_px0 CHARRAM_PX0 //6B
     .i_WR_n                     (charram1u_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4_charram_px1 CHARRAM_PX1 //6A
+
+DRAM #(.dw( 4 ), .aw( 8 ), .rw( 8 ), .cw( 6 ), .ctop( 6 ), .cbot( 1 ),
+       .simhexfile("init_charram_px1.txt"))
+CHARRAM_PX1 //6A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -898,7 +960,10 @@ DRAM16k4_charram_px1 CHARRAM_PX1 //6A
     .i_WR_n                     (charram1u_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4_charram_px2 CHARRAM_PX2 //2B
+
+DRAM #(.dw( 4 ), .aw( 8 ), .rw( 8 ), .cw( 6 ), .ctop( 6 ), .cbot( 1 ),
+       .simhexfile("init_charram_px2.txt"))
+CHARRAM_PX2 //2B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -909,7 +974,10 @@ DRAM16k4_charram_px2 CHARRAM_PX2 //2B
     .i_WR_n                     (charram1l_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4_charram_px3 CHARRAM_PX3 //2A
+
+DRAM #(.dw( 4 ), .aw( 8 ), .rw( 8 ), .cw( 6 ), .ctop( 6 ), .cbot( 1 ),
+       .simhexfile("init_charram_px3.txt"))
+CHARRAM_PX3 //2A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -920,7 +988,10 @@ DRAM16k4_charram_px3 CHARRAM_PX3 //2A
     .i_WR_n                     (charram1l_wr               ),
     .i_RD_n                     (charram1_rd                )
 );
-DRAM16k4_charram_px4 CHARRAM_PX4 //7B
+
+DRAM #(.dw( 4 ), .aw( 8 ), .rw( 8 ), .cw( 6 ), .ctop( 6 ), .cbot( 1 ),
+       .simhexfile("init_charram_px4.txt"))
+CHARRAM_PX4 //7B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -931,7 +1002,10 @@ DRAM16k4_charram_px4 CHARRAM_PX4 //7B
     .i_WR_n                     (charram2u_wr               ),
     .i_RD_n                     (charram2_rd                )
 );
-DRAM16k4_charram_px5 CHARRAM_PX5 //7A
+
+DRAM #(.dw( 4 ), .aw( 8 ), .rw( 8 ), .cw( 6 ), .ctop( 6 ), .cbot( 1 ),
+       .simhexfile("init_charram_px5.txt"))
+CHARRAM_PX5 //7A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -942,7 +1016,10 @@ DRAM16k4_charram_px5 CHARRAM_PX5 //7A
     .i_WR_n                     (charram2u_wr               ),
     .i_RD_n                     (charram2_rd                )
 );
-DRAM16k4_charram_px6 CHARRAM_PX6 //4B
+
+DRAM #(.dw( 4 ), .aw( 8 ), .rw( 8 ), .cw( 6 ), .ctop( 6 ), .cbot( 1 ),
+       .simhexfile("init_charram_px6.txt"))
+CHARRAM_PX6 //4B
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -953,7 +1030,10 @@ DRAM16k4_charram_px6 CHARRAM_PX6 //4B
     .i_WR_n                     (charram2l_wr               ),
     .i_RD_n                     (charram2_rd                )
 );
-DRAM16k4_charram_px7 CHARRAM_PX7 //4A
+
+DRAM #(.dw( 4 ), .aw( 8 ), .rw( 8 ), .cw( 6 ), .ctop( 6 ), .cbot( 1 ),
+       .simhexfile("init_charram_px7.txt"))
+CHARRAM_PX7 //4A
 (
     .i_MCLK                     (i_EMU_MCLK                 ),
     .i_ADDR                     (charram_addr               ),
@@ -1028,6 +1108,128 @@ K005290 K005290_main
 
 
 
+///////////////////////////////////////////////////////////
+//////  K005294
+////
+
+wire            TILELINELATCH_n = ~(ABS_1H & ABS_2H);
+wire    [7:0]   DA;
+wire    [7:0]   DB;
+
+
+K005294 K005294_main
+(
+    .i_EMU_MCLK                 (i_EMU_MCLK                 ),
+    .i_EMU_CLK6MPCEN_n          (o_EMU_CLK6MPCEN_n          ),
+
+    .i_GFXDATA                  ({charram1_dout, charram2_dout}),
+    .i_OC                       (objtable_dout[4:1]         ),
+
+    .i_TILELINELATCH_n          (TILELINELATCH_n            ),
+
+    .o_DA                       (DA                         ),
+    .o_DB                       (DB                         ),
+
+    .i_WRTIME2                  (WRTIME2                    ),
+    .i_COLORLATCH_n             (COLORLATCH_n               ),
+    .i_XPOS_D0                  (XPOS_D0                    ),
+    .i_PIXELLATCH_WAIT_n        (PIXELLATCH_WAIT_n          ),
+    .i_LATCH_A_D2               (LATCH_A_D2                 ),
+    .i_PIXELSEL                 (PIXELSEL                   )
+);
+
+
+
+
+
+
+///////////////////////////////////////////////////////////
+//////  FRAME BUFFER
+////
+
+
+reg             DFF_18H_A;
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MPCEN_n)
+    begin
+        DFF_18H_A <= WRTIME2;
+    end
+end
+
+reg             DFF_18H_B;
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MNCEN_n) //negative edge of CLK6M
+    begin
+        DFF_18H_B <= DFF_18H_A;
+    end
+end
+
+wire            wrtime2_buf_ras_n = DFF_18H_A & ~DFF_18H_B; //21H LS08 AND
+wire            objbuf_ras_n = (OBJWR == 1'b0) ? ~CHAMPX : wrtime2_buf_ras_n; //13H LS157
+
+
+
+reg             DFF_17H_B;
+always @(posedge i_EMU_MCLK)
+begin
+    if(!o_EMU_CLK6MPCEN_n) //positive edge of CLK6M
+    begin
+        DFF_17H_B <= DFF_18H_A;
+    end
+end
+
+wire            wrtime2_buf_we_n = __REF_CLK6M | ~DFF_17H_B; //14H LS32 OR
+wire            objbuf_we_n = (OBJWR == 1'b0) ? OBJCLRWE : wrtime2_buf_we_n; //13H LS157
+
+
+
+reg             objbuf_ras_dly_n;
+
+always @(posedge i_EMU_MCLK)
+begin
+    OBJHL <= ~objbuf_ras_n;
+
+    objbuf_ras_dly_n <= objbuf_ras_n;
+end
+
+
+wire            evenbuf_overwrite_disable = ~(~XA7 & |{DA[3:0]});
+wire    [7:0]   evenbuf_dout;
+wire    [7:0]   evenbuf_din =   (OBJCLR == 1'b1) ? 8'h00 :
+                                        (evenbuf_overwrite_disable == 1'b0) ? DA : evenbuf_dout;
+
+wire            oddbuf_overwrite_disable = ~(~XB7 & |{DB[3:0]});
+wire    [7:0]   oddbuf_dout;
+wire    [7:0]   oddbuf_din =    (OBJCLR == 1'b1) ? 8'h00 :
+                                        (oddbuf_overwrite_disable == 1'b0) ? DB : oddbuf_dout;
+                                    
+
+//EVEN
+DRAM #(.dw( 8 ), .aw( 8 ), .init( 1 ))
+EVENBUF 
+(
+    .i_MCLK (i_EMU_MCLK), .i_ADDR (FA),
+    .i_DIN (evenbuf_din), .o_DOUT (evenbuf_dout), 
+    .i_RAS_n (objbuf_ras_n), .i_CAS_n (~OBJBUF_CAS), .i_WR_n (objbuf_we_n), .i_RD_n (1'b0) 
+);
+
+
+//ODD
+DRAM #(.dw( 8 ), .aw( 8 ), .init( 1 ))
+ODDBUF 
+(
+    .i_MCLK (i_EMU_MCLK), .i_ADDR (FB),
+    .i_DIN (oddbuf_din), .o_DOUT (oddbuf_dout), 
+    .i_RAS_n (objbuf_ras_n), .i_CAS_n (~OBJBUF_CAS), .i_WR_n (objbuf_we_n), .i_RD_n (1'b0)
+);
+
+
+
+
+
+
 
 ///////////////////////////////////////////////////////////
 //////  K005293
@@ -1057,7 +1259,7 @@ K005293 K005293_main
 
     .i_A_PIXEL                  (A_PIXEL                    ),
     .i_B_PIXEL                  (B_PIXEL                    ),
-    .i_OBJBUF_DATA              (16'h0000                   ),
+    .i_OBJBUF_DATA              ({oddbuf_dout, evenbuf_dout}),
 
     .i_A_TRN_n                  (A_TRN_n                    ),
     .i_B_TRN_n                  (B_TRN_n                    ),
@@ -1071,8 +1273,6 @@ K005293 K005293_main
 
     .o_CD                       (o_CD                       )
 );
-
-
 
 
 

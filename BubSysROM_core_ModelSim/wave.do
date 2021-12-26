@@ -1,94 +1,91 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate /BubSysROM_video_tb/main/i_EMU_MCLK
-add wave -noupdate /BubSysROM_video_tb/main/__REF_CLK9M
-add wave -noupdate /BubSysROM_video_tb/main/__REF_CLK6M
-add wave -noupdate -radix unsigned {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[2]}
-add wave -noupdate -radix unsigned {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[1]}
-add wave -noupdate /BubSysROM_video_tb/main/K005290_main/ABS_2H_dl
-add wave -noupdate -radix unsigned {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[0]}
-add wave -noupdate /BubSysROM_video_tb/main/K005292_main/o_VCLK
-add wave -noupdate -radix unsigned /BubSysROM_video_tb/main/K005292_main/vertical_counter
-add wave -noupdate /BubSysROM_video_tb/main/K005292_main/o_HBLANK_n
-add wave -noupdate /BubSysROM_video_tb/main/K005292_main/o_VBLANK_n
-add wave -noupdate /BubSysROM_video_tb/main/K005292_main/o_VBLANKH_n
-add wave -noupdate /BubSysROM_video_tb/main/K005292_main/o_FRAMEPARITY
-add wave -noupdate /BubSysROM_video_tb/main/K005292_main/o_VSYNC_n
-add wave -noupdate /BubSysROM_video_tb/main/K005292_main/o_CSYNC_n
-add wave -noupdate /BubSysROM_video_tb/main/TIME1
-add wave -noupdate /BubSysROM_video_tb/main/TIME2
-add wave -noupdate /BubSysROM_video_tb/main/CHAMPX
-add wave -noupdate /BubSysROM_video_tb/main/VRTIME
-add wave -noupdate /BubSysROM_video_tb/main/OBJCLRWE
-add wave -noupdate /BubSysROM_video_tb/main/OBJRW
-add wave -noupdate /BubSysROM_video_tb/main/OBJCLR
-add wave -noupdate /BubSysROM_video_tb/main/BLK
-add wave -noupdate -radix unsigned -childformat {{{/BubSysROM_video_tb/main/K005292_main/horizontal_counter[8]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/horizontal_counter[7]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/horizontal_counter[6]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/horizontal_counter[5]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/horizontal_counter[4]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/horizontal_counter[3]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/horizontal_counter[2]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/horizontal_counter[1]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/horizontal_counter[0]} -radix unsigned}} -subitemconfig {{/BubSysROM_video_tb/main/K005292_main/horizontal_counter[8]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[7]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[6]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[5]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[4]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[3]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[2]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[1]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/horizontal_counter[0]} {-height 15 -radix unsigned}} /BubSysROM_video_tb/main/K005292_main/horizontal_counter
-add wave -noupdate -radix hexadecimal -childformat {{{/BubSysROM_video_tb/main/scrollram_addr[10]} -radix hexadecimal} {{/BubSysROM_video_tb/main/scrollram_addr[9]} -radix hexadecimal} {{/BubSysROM_video_tb/main/scrollram_addr[8]} -radix hexadecimal} {{/BubSysROM_video_tb/main/scrollram_addr[7]} -radix hexadecimal} {{/BubSysROM_video_tb/main/scrollram_addr[6]} -radix hexadecimal} {{/BubSysROM_video_tb/main/scrollram_addr[5]} -radix hexadecimal} {{/BubSysROM_video_tb/main/scrollram_addr[4]} -radix hexadecimal} {{/BubSysROM_video_tb/main/scrollram_addr[3]} -radix hexadecimal} {{/BubSysROM_video_tb/main/scrollram_addr[2]} -radix hexadecimal} {{/BubSysROM_video_tb/main/scrollram_addr[1]} -radix hexadecimal} {{/BubSysROM_video_tb/main/scrollram_addr[0]} -radix hexadecimal}} -subitemconfig {{/BubSysROM_video_tb/main/scrollram_addr[10]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/scrollram_addr[9]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/scrollram_addr[8]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/scrollram_addr[7]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/scrollram_addr[6]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/scrollram_addr[5]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/scrollram_addr[4]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/scrollram_addr[3]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/scrollram_addr[2]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/scrollram_addr[1]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/scrollram_addr[0]} {-height 15 -radix hexadecimal}} /BubSysROM_video_tb/main/scrollram_addr
-add wave -noupdate -radix unsigned /BubSysROM_video_tb/main/scrollram_dout
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005291_main/TMA_HSCROLL_VALUE
-add wave -noupdate /BubSysROM_video_tb/main/K005291_main/o_SHIFTA1
-add wave -noupdate /BubSysROM_video_tb/main/K005291_main/o_SHIFTA2
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005291_main/TMB_HSCROLL_VALUE
-add wave -noupdate /BubSysROM_video_tb/main/K005291_main/o_SHIFTB
-add wave -noupdate -radix unsigned /BubSysROM_video_tb/main/K005291_main/TMAB_VSCROLL_VALUE
-add wave -noupdate -radix hexadecimal -childformat {{{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[11]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[10]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[9]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[8]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[7]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[6]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[5]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[4]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[3]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[2]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[1]} -radix hexadecimal} {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[0]} -radix hexadecimal}} -subitemconfig {{/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[11]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[10]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[9]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[8]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[7]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[6]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[5]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[4]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[3]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[2]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[1]} {-height 15 -radix hexadecimal} {/BubSysROM_video_tb/main/K005291_main/o_VRAMADDR[0]} {-height 15 -radix hexadecimal}} /BubSysROM_video_tb/main/K005291_main/o_VRAMADDR
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/tile_code
-add wave -noupdate /BubSysROM_video_tb/main/VVFF
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005291_main/o_TILELINEADDR
-add wave -noupdate -radix decimal /BubSysROM_video_tb/main/__REF_VCA_ORIGINAL
-add wave -noupdate /BubSysROM_video_tb/main/CHAMPX2
-add wave -noupdate /BubSysROM_video_tb/main/VCA
-add wave -noupdate /BubSysROM_video_tb/main/charram_ras_n
-add wave -noupdate /BubSysROM_video_tb/main/charram_cas_n
-add wave -noupdate -radix decimal /BubSysROM_video_tb/main/CHARRAM_PX0/__ADDR
-add wave -noupdate /BubSysROM_video_tb/main/charram1_rd
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/charram1_dout
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/charram2_dout
-add wave -noupdate /BubSysROM_video_tb/main/__REF_CLK6M
-add wave -noupdate /BubSysROM_video_tb/main/K005290_main/pixel7_n
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005290_main/A_LINELATCH
-add wave -noupdate /BubSysROM_video_tb/main/K005290_main/i_A_MODE
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005290_main/A_PIXEL_DELAY1
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005290_main/A_PIXEL_DELAY2
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005290_main/A_PIXEL_DELAY3
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005290_main/o_A_PIXEL
-add wave -noupdate /BubSysROM_video_tb/main/K005290_main/pixel3_n
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005290_main/B_LINELATCH
-add wave -noupdate /BubSysROM_video_tb/main/K005290_main/i_B_MODE
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005290_main/o_B_PIXEL
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/PR
-add wave -noupdate /BubSysROM_video_tb/main/VHFF
-add wave -noupdate -radix unsigned /BubSysROM_video_tb/main/VC
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/A_PROPERTY_DELAY1
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/A_PROPERTY_DELAY2
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/A_PROPERTY_DELAY3
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/A_PROPERTY_DELAY4
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/B_PROPERTY_DELAY1
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/B_PROPERTY_DELAY2
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/B_PROPERTY_DELAY3
-add wave -noupdate /BubSysROM_video_tb/main/K005293_main/a_pr
-add wave -noupdate /BubSysROM_video_tb/main/K005293_main/b_pr
-add wave -noupdate /BubSysROM_video_tb/main/K005293_main/priority_mode
-add wave -noupdate /BubSysROM_video_tb/main/K005293_main/transparency
-add wave -noupdate /BubSysROM_video_tb/main/K005293_main/layer
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/i_A_PIXEL
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/i_B_PIXEL
-add wave -noupdate /BubSysROM_video_tb/main/K005293_main/a_palette
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/b_palette
-add wave -noupdate -radix hexadecimal /BubSysROM_video_tb/main/K005293_main/o_CD
-add wave -noupdate /BubSysROM_video_tb/main/ABS_8H
-add wave -noupdate /BubSysROM_video_tb/main/ABS_4H
-add wave -noupdate /BubSysROM_video_tb/main/ABS_2H
-add wave -noupdate /BubSysROM_video_tb/main/ABS_1H
-add wave -noupdate -radix unsigned /BubSysROM_video_tb/main/K005292_main/horizontal_counter
-add wave -noupdate -radix unsigned -childformat {{{/BubSysROM_video_tb/main/K005292_main/vertical_counter[8]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[7]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[6]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[5]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[4]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[3]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[2]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[1]} -radix unsigned} {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[0]} -radix unsigned}} -expand -subitemconfig {{/BubSysROM_video_tb/main/K005292_main/vertical_counter[8]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[7]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[6]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[5]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[4]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[3]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[2]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[1]} {-height 15 -radix unsigned} {/BubSysROM_video_tb/main/K005292_main/vertical_counter[0]} {-height 15 -radix unsigned}} /BubSysROM_video_tb/main/K005292_main/vertical_counter
-add wave -noupdate /BubSysROM_video_tb/main/dma
-add wave -noupdate /BubSysROM_video_tb/main/K005292_main/__REF_DMA_n
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/i_HBLANK_n
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/i_VBLANK_n
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/i_VBLANKH_n
+add wave -noupdate /BubSysROM_top_tb/main/video_main/__REF_CLK6M
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/i_ABS_4H
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/i_ABS_2H
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/i_ABS_1H
+add wave -noupdate /BubSysROM_top_tb/main/video_main/OBJCLR
+add wave -noupdate /BubSysROM_top_tb/main/video_main/OBJWR
+add wave -noupdate /BubSysROM_top_tb/main/video_main/OBJCLRWE
+add wave -noupdate /BubSysROM_top_tb/main/video_main/CHAMPX
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/buffer_frame_parity
+add wave -noupdate -radix unsigned /BubSysROM_top_tb/main/video_main/OBJ
+add wave -noupdate -radix unsigned /BubSysROM_top_tb/main/video_main/ORA
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/objtable_addr
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/objtable_dout
+add wave -noupdate /BubSysROM_top_tb/main/video_main/__REF_CLK6M
+add wave -noupdate -radix unsigned /BubSysROM_top_tb/main/video_main/K005295_main/sprite_engine_state
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/drawing_status
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/hzoom_acc
+add wave -noupdate {/BubSysROM_top_tb/main/video_main/K005295_main/xpos_cnt_dly_n[1]}
+add wave -noupdate -color {Blue Violet} -radix unsigned /BubSysROM_top_tb/main/video_main/K005295_main/TILELINE_ADDR
+add wave -noupdate -color {Blue Violet} -radix unsigned /BubSysROM_top_tb/main/video_main/K005295_main/HLINE_ADDR
+add wave -noupdate -color Cyan -radix unsigned -childformat {{{/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[7]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[6]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[5]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[4]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[3]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[2]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[1]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[0]} -radix unsigned}} -subitemconfig {{/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[7]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[6]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[5]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[4]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[3]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[2]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[1]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter[0]} {-color Cyan -height 15 -radix unsigned}} /BubSysROM_top_tb/main/video_main/K005295_main/evenbuffer_xpos_counter
+add wave -noupdate -color Cyan -radix unsigned /BubSysROM_top_tb/main/video_main/K005295_main/oddbuffer_xpos_counter
+add wave -noupdate {/BubSysROM_top_tb/main/video_main/K005295_main/ypos_cnt_dly_n[3]}
+add wave -noupdate -color {Blue Violet} -radix unsigned /BubSysROM_top_tb/main/video_main/K005295_main/VTILE_ADDR
+add wave -noupdate -color Cyan -radix unsigned -childformat {{{/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[7]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[6]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[5]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[4]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[3]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[2]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[1]} -radix unsigned} {{/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[0]} -radix unsigned}} -subitemconfig {{/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[7]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[6]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[5]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[4]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[3]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[2]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[1]} {-color Cyan -height 15 -radix unsigned} {/BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter[0]} {-color Cyan -height 15 -radix unsigned}} /BubSysROM_top_tb/main/video_main/K005295_main/buffer_ypos_counter
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/x_out_of_screen
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/y_out_of_screen
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/hsize_parity
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/oddsize_wrtime0
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/evensize_wrtime0
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/o_PIXELLATCH_WAIT_n
+add wave -noupdate /BubSysROM_top_tb/main/video_main/CHAOV
+add wave -noupdate -radix hexadecimal -childformat {{{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[13]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[12]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[11]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[10]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[9]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[8]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[7]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[6]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[5]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[4]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[3]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[2]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[1]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[0]} -radix hexadecimal}} -subitemconfig {{/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[13]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[12]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[11]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[10]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[9]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[8]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[7]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[6]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[5]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[4]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[3]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[2]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[1]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR[0]} {-height 15 -radix hexadecimal}} /BubSysROM_top_tb/main/video_main/K005295_main/CHARRAM_ADDR
+add wave -noupdate -radix hexadecimal -childformat {{{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[13]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[12]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[11]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[10]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[9]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[8]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[7]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[6]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[5]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[4]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[3]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[2]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[1]} -radix hexadecimal} {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[0]} -radix hexadecimal}} -subitemconfig {{/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[13]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[12]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[11]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[10]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[9]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[8]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[7]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[6]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[5]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[4]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[3]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[2]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[1]} {-height 15 -radix hexadecimal} {/BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR[0]} {-height 15 -radix hexadecimal}} /BubSysROM_top_tb/main/video_main/CHARRAM_PX1/ADDR
+add wave -noupdate /BubSysROM_top_tb/main/video_main/CHARRAM_PX3/i_RAS_n
+add wave -noupdate /BubSysROM_top_tb/main/video_main/CHARRAM_PX3/i_CAS_n
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/K005294_main/i_GFXDATA
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/K005294_main/i_TILELINELATCH_n
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/K005294_main/OBJ_TILELINELATCH
+add wave -noupdate /BubSysROM_top_tb/main/video_main/COLORLATCH_n
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/K005294_main/OBJ_PALETTE
+add wave -noupdate /BubSysROM_top_tb/main/video_main/__REF_CLK6M
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/hsize_parity
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/pixellatch_wait_n
+add wave -noupdate /BubSysROM_top_tb/main/video_main/PIXELLATCH_WAIT_n
+add wave -noupdate /BubSysROM_top_tb/main/video_main/WRTIME2
+add wave -noupdate {/BubSysROM_top_tb/main/video_main/K005294_main/wrtime2_dly[1]}
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/hzoom_acc
+add wave -noupdate -radix unsigned /BubSysROM_top_tb/main/video_main/PIXELSEL
+add wave -noupdate -radix unsigned {/BubSysROM_top_tb/main/video_main/K005294_main/pixelsel_dly[3]}
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005294_main/pixellatch_n
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/K005294_main/OBJ_PIXEL_LATCHED
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/K005294_main/OBJ_PIXEL_UNLATCHED
+add wave -noupdate -color Coral -radix unsigned /BubSysROM_top_tb/main/video_main/XPOS_D0
+add wave -noupdate -radix unsigned /BubSysROM_top_tb/main/video_main/K005295_main/buffer_x_screencounter
+add wave -noupdate -radix unsigned /BubSysROM_top_tb/main/video_main/K005295_main/buffer_y_screencounter
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/K005295_main/EVENBUFFER_ADDR
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/K005295_main/ODDBUFFER_ADDR
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/EVENBUF/ADDR
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/ODDBUF/ADDR
+add wave -noupdate {/BubSysROM_top_tb/main/video_main/K005294_main/pixellatch_wait_dly[2]}
+add wave -noupdate {/BubSysROM_top_tb/main/video_main/K005294_main/pixellatch_wait_dly[3]}
+add wave -noupdate /BubSysROM_top_tb/main/video_main/K005295_main/i_EMU_MCLK
+add wave -noupdate -color Magenta -radix hexadecimal /BubSysROM_top_tb/main/video_main/K005294_main/o_DA
+add wave -noupdate -color Magenta -radix hexadecimal /BubSysROM_top_tb/main/video_main/K005294_main/o_DB
+add wave -noupdate /BubSysROM_top_tb/main/video_main/objbuf_ras_n
+add wave -noupdate /BubSysROM_top_tb/main/video_main/OBJBUF_CAS
+add wave -noupdate /BubSysROM_top_tb/main/video_main/objbuf_we_n
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/evenbuffer_din
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/oddbuffer_din
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/evenbuffer_dout
+add wave -noupdate -radix hexadecimal /BubSysROM_top_tb/main/video_main/oddbuffer_dout
+add wave -noupdate /BubSysROM_top_tb/main/video_main/evenbuffer_overwrite_disable
+add wave -noupdate /BubSysROM_top_tb/main/video_main/oddbuffer_overwrite_disable
+add wave -noupdate /BubSysROM_top_tb/main/video_main/i_EMU_MCLK
+add wave -noupdate /BubSysROM_top_tb/main/video_main/__REF_CLK6M
+add wave -noupdate /BubSysROM_top_tb/main/video_main/ABS_1H
+add wave -noupdate /BubSysROM_top_tb/main/video_main/o_BLK
+add wave -noupdate /BubSysROM_top_tb/main/video_main/OBJWR
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {5273950 ns} 0}
+WaveRestoreCursors {{Cursor 1} {6539470 ns} 0}
 quietly wave cursor active 1
-configure wave -namecolwidth 179
+configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -102,4 +99,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {1025200 ns} {6261840 ns}
+WaveRestoreZoom {29998270 ns} {30000100 ns}
