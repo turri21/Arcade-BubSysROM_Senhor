@@ -1060,7 +1060,7 @@ begin
 
                     ypos_cnt_n <= 1'b1;
 
-                    pixellatch_wait_n <= 1'b0;
+                    pixellatch_wait_n <= ~hsize_parity;
                 end
             end
             else if(drawing_status == END_OF_HLINE)
@@ -1089,7 +1089,7 @@ begin
 
                         ypos_cnt_n <= 1'b1;
 
-                        pixellatch_wait_n <= 1'b0;
+                        pixellatch_wait_n <= ~hsize_parity;
                     end 
                 end
                 else 
