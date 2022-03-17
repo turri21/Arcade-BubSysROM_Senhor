@@ -432,7 +432,7 @@ begin
         4'hA: vtile_complete_n <= vtile3_complete_n; //32*32    4 vetrical tiles
         4'hB: vtile_complete_n <= vtile15_complete_n; //64*128  16 vetrical tiles
         4'hC: vtile_complete_n <= vtile1_complete_n; //8*16     2 vetrical tiles
-        4'hD: vtile_complete_n <= vtile1_complete_n; //16*32    2 vetrical tiles
+        4'hD: vtile_complete_n <= vtile1_complete_n; //16*16    2 vetrical tiles
         4'hE: vtile_complete_n <= vtile3_complete_n; //8*32     4 vetrical tiles
         4'hF: vtile_complete_n <= vtile3_complete_n; //16*32    4 vetrical tiles
     endcase
@@ -448,13 +448,12 @@ end
 ////
 
 //countup signal delay registers
-reg     [1:0]   xpos_cnt_dly_n;
+reg             xpos_cnt_dly_n;
 always @(posedge i_EMU_MCLK)
 begin
     if(!i_EMU_CLK6MPCEN_n)
     begin
-        xpos_cnt_dly_n[0] <= ~o_WRTIME2;
-        xpos_cnt_dly_n[1] <= xpos_cnt_dly_n[0];
+        xpos_cnt_dly_n <= ~o_WRTIME2;
     end
 end
 
@@ -489,7 +488,11 @@ begin
         end
         else
         begin
-            if(xpos_cnt_dly_n[1] == 1'b0)
+            if(xpos_cnt_dly_n == 1'b0) //Bootleggers were right. Do not delay 2 clks
+                                       //The xpos counter increases immediately after the DRAM latches the row address.
+                                       //This is not aesthetically pleasing, but there is no problem at all. 
+                                       //Only 1 clock delay allows logic to know the offscreen flag in advance
+                                       //and switch the state appropriately.
             begin
                 evenbuffer_xpos_counter <= evenbuffer_xpos_counter + 8'd1;
                 oddbuffer_xpos_counter <= oddbuffer_xpos_counter + 8'd1;
@@ -528,13 +531,15 @@ end
 //////  DRAWING STATUS FLAGS
 ////
 
-wire            x_out_of_screen = ~(~oddbuffer_xpos_counter[7] | oddbuffer_xpos_counter[6]); //0-255 or 384-511
-wire            y_out_of_screen = (buffer_ypos_counter == 8'd255) ? 1'b1 : 1'b0;
+wire            oddbuffer_xpos_d7 = oddbuffer_xpos_counter[7];
 
-wire            end_of_tileline = tileline0_complete | x_out_of_screen;
-wire            end_of_hline = hline_complete | x_out_of_screen;
-//wire            end_of_last_hline_n = ~(~(vtile_complete_n | vzoom_cnt_n) | y_out_of_screen);
-wire            end_of_last_hline_n = ~(~(vtile_complete_n) | y_out_of_screen);
+wire            x_offscreen = ~(~oddbuffer_xpos_counter[7] | oddbuffer_xpos_counter[6]); //0-255 or 384-511
+wire            y_offscreen = (buffer_ypos_counter == 8'd255) ? 1'b1 : 1'b0;
+
+wire            end_of_tileline = tileline0_complete | x_offscreen;
+wire            end_of_hline = hline_complete | x_offscreen;
+//wire            end_of_last_hline_n = ~(~(vtile_complete_n | vzoom_cnt_n) | y_offscreen);
+wire            end_of_last_hline_n = ~(~(vtile_complete_n) | y_offscreen);
 
 
 
@@ -690,7 +695,10 @@ end
         ATTR_LATCHING_S1, it moves to this state after attrubute latching. The FSM checks
         FSM_SUSPEND at every rising edge of 2H. 
         Note that WRTIME2 and o_PIXELLATCH_WAIT_n will still be on the lines after a
-        suspension, since they are just delayed signals from the shift registers. 
+        suspension, since they are just delayed signals from the shift registers.
+
+    XOFF_S0:
+        A true delay to handle sprite clipping.
 */
 
 /*
@@ -707,6 +715,9 @@ end
     HWAIT때는 그냥 latch_wait으로 래칭을 정지. end_of_hline일때 가로사이즈가 홀수라면 먼저
     들어온 픽셀이 아직 래치되지 않고 기다리는 중이므로 ODDSIZE를 4클럭동안 삽입. 이때 먼저
     들어온 픽셀이 래치되고 기록됨.
+
+    XOFF_S0은 스프라이트가 잘릴 때 스프라이트 카운터는 3클럭 후에 리셋되는데 FSM이
+    여전히 딜레이된 오프스크린 신호를 잡아들어서 발생한 문제. 순수 딜레이.
 */
 
 //Declare states
@@ -715,6 +726,7 @@ localparam ATTR_LATCHING_S1 = 3'd2;
 localparam HCOUNT_S0 = 3'd3;
 localparam HWAIT_S0 = 3'd4;
 localparam ODDSIZE_S0 = 3'd5;
+localparam XOFF_S0 = 3'd6;
 localparam SUSPEND_S0 = 3'd0;
 
 //Declare state register
@@ -791,7 +803,14 @@ begin
                         begin
                             if(hsize_parity == 1'b0) //zoomed horizontal size is even
                             begin
-                                sprite_engine_state <= HCOUNT_S0;
+                                if(oddbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                                begin
+                                    sprite_engine_state <= XOFF_S0;
+                                end
+                                else
+                                begin
+                                    sprite_engine_state <= HCOUNT_S0;
+                                end
                             end
                             else //zoomed horizontal size is odd
                             begin
@@ -868,7 +887,14 @@ begin
                         begin
                             if(hsize_parity == 1'b0) //zoomed horizontal size is even
                             begin
-                                sprite_engine_state <= HCOUNT_S0;
+                                if(oddbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                                begin
+                                    sprite_engine_state <= XOFF_S0;
+                                end
+                                else
+                                begin
+                                    sprite_engine_state <= HCOUNT_S0;
+                                end
                             end
                             else //zoomed horizontal size is odd
                             begin
@@ -901,14 +927,32 @@ begin
                         begin
                             sprite_engine_state <= ATTR_LATCHING_S0;
                         end
+                        else if(drawing_status == END_OF_HLINE)
+                        begin
+                            if(oddbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                            begin
+                                sprite_engine_state <= XOFF_S0;
+                            end
+                            else
+                            begin
+                                sprite_engine_state <= HCOUNT_S0;
+                            end
+                        end
                         else
                         begin
                             sprite_engine_state <= HCOUNT_S0;
                         end
                     end
-                    else //if not, go suspend_s0
+                    else //if not, go suspend_s0. *But get new properties first*
                     begin
-                        sprite_engine_state <= SUSPEND_S0;
+                        if(drawing_status == END_OF_SPRITE)
+                        begin
+                            sprite_engine_state <= ATTR_LATCHING_S0;
+                        end
+                        else
+                        begin
+                            sprite_engine_state <= SUSPEND_S0;
+                        end
                     end
                 end
                 else
@@ -935,7 +979,14 @@ begin
                         begin
                             if(hsize_parity == 1'b0) //zoomed horizontal size is even
                             begin
-                                sprite_engine_state <= HCOUNT_S0;
+                                if(oddbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                                begin
+                                    sprite_engine_state <= XOFF_S0;
+                                end
+                                else
+                                begin
+                                    sprite_engine_state <= HCOUNT_S0;
+                                end
                             end
                             else //zoomed horizontal size is odd
                             begin
@@ -950,6 +1001,34 @@ begin
                     else
                     begin
                         sprite_engine_state <= SUSPEND_S0;
+                    end
+                end
+            end
+
+            XOFF_S0: begin
+                if(pixel3_n == 1'b0) //exit condition: encounter px3
+                begin
+                    if(FSM_SUSPEND == 1'b0)
+                    begin
+                        if(drawing_status == END_OF_SPRITE)
+                        begin
+                            if(oddbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                            begin
+                                sprite_engine_state <= HCOUNT_S0;
+                            end
+                            else
+                            begin
+                                sprite_engine_state <= ATTR_LATCHING_S0;
+                            end 
+                        end
+                        else
+                        begin
+                            sprite_engine_state <= HCOUNT_S0;
+                        end
+                    end
+                    else
+                    begin
+                        sprite_engine_state <= XOFF_S0;
                     end
                 end
             end
@@ -1467,11 +1546,11 @@ begin
                     pixellatch_wait_n <= 1'b0;
                 end
             end
-            else //`KEEP_DRAWING(WILL NOT HAPPEN)
+            else //`KEEP_DRAWING
             begin
                 if(pixel3_n == 1'b0) //pixel 3
                 begin
-                    hzoom_cnt_n <= 1'b0;
+                    hzoom_cnt_n <= 1'b1;
                     hzoom_rst_n <= 1'b1;
 
                     vzoom_cnt_n <= 1'b1;
@@ -1501,6 +1580,20 @@ begin
             SUSPEND_S0
             작업이 재개될 때 까지 기다립니다.
         */
+            latching_start <= 1'b0;
+
+            hzoom_cnt_n <= 1'b1;
+            hzoom_rst_n <= 1'b1;
+
+            vzoom_cnt_n <= 1'b1;
+            vzoom_rst_n <= 1'b1;
+
+            ypos_cnt_n <= 1'b1;
+
+            pixellatch_wait_n <= 1'b0;
+        end
+
+        XOFF_S0: begin
             latching_start <= 1'b0;
 
             hzoom_cnt_n <= 1'b1;
@@ -1782,6 +1875,20 @@ end
 ////
 
 assign  o_CAS = i_OBJHL;
+
+
+reg debug;
+always @(*)
+begin
+    if(oddbuffer_xpos_counter == 8'd96 && buffer_ypos_counter == 8'd86)
+    begin
+        debug <= 1'b1;
+    end
+    else
+    begin
+        debug <= 1'b0;
+    end
+end
 
 
 endmodule
