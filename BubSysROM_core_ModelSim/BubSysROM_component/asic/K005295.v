@@ -531,7 +531,7 @@ end
 //////  DRAWING STATUS FLAGS
 ////
 
-wire            oddbuffer_xpos_d7 = oddbuffer_xpos_counter[7];
+wire            evenbuffer_xpos_d7 = evenbuffer_xpos_counter[7]; //not oddbuffer, TODO: check the bootleg PCB again
 
 wire            x_offscreen = ~(~oddbuffer_xpos_counter[7] | oddbuffer_xpos_counter[6]); //0-255 or 384-511
 wire            y_offscreen = (buffer_ypos_counter == 8'd255) ? 1'b1 : 1'b0;
@@ -803,7 +803,7 @@ begin
                         begin
                             if(hsize_parity == 1'b0) //zoomed horizontal size is even
                             begin
-                                if(oddbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                                if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
                                 begin
                                     sprite_engine_state <= XOFF_S0;
                                 end
@@ -887,7 +887,7 @@ begin
                         begin
                             if(hsize_parity == 1'b0) //zoomed horizontal size is even
                             begin
-                                if(oddbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                                if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
                                 begin
                                     sprite_engine_state <= XOFF_S0;
                                 end
@@ -929,7 +929,7 @@ begin
                         end
                         else if(drawing_status == END_OF_HLINE)
                         begin
-                            if(oddbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                            if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
                             begin
                                 sprite_engine_state <= XOFF_S0;
                             end
@@ -979,7 +979,7 @@ begin
                         begin
                             if(hsize_parity == 1'b0) //zoomed horizontal size is even
                             begin
-                                if(oddbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                                if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
                                 begin
                                     sprite_engine_state <= XOFF_S0;
                                 end
@@ -1012,7 +1012,7 @@ begin
                     begin
                         if(drawing_status == END_OF_SPRITE)
                         begin
-                            if(oddbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                            if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
                             begin
                                 sprite_engine_state <= HCOUNT_S0;
                             end
