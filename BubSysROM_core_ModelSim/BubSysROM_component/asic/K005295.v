@@ -1013,14 +1013,7 @@ begin
                         begin
                             if(drawing_status == END_OF_SPRITE)
                             begin
-                                if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
-                                begin
-                                    sprite_engine_state <= HCOUNT_S0;
-                                end
-                                else
-                                begin
-                                    sprite_engine_state <= ATTR_LATCHING_S0;
-                                end 
+                                sprite_engine_state <= ATTR_LATCHING_S0;
                             end
                             else
                             begin
