@@ -790,7 +790,7 @@ wire    [2:0]   PIXELSEL;
 
 
 //declare K005295 core
-K005295 #(.__ENABLE_DOUBLE_HEIGHT_MODE(1'b0), .__SAVE_FRAMEBUFFER_CAPACITY(1'b1))
+K005295 #(.__ENABLE_DOUBLE_HEIGHT_MODE(1'b0))
 K005295_main
 (
     .i_EMU_MCLK                 (i_EMU_MCLK                 ),

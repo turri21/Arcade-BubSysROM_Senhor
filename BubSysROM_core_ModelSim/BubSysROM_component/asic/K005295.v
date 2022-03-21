@@ -42,10 +42,7 @@
 */
 
 module K005295
-#(
-    parameter               __ENABLE_DOUBLE_HEIGHT_MODE = 1'b0,
-    parameter               __SAVE_FRAMEBUFFER_CAPACITY = 1'b1
-)
+#(parameter               __ENABLE_DOUBLE_HEIGHT_MODE = 1'b0)
 (
     //emulator
     input   wire            i_EMU_MCLK,
@@ -774,20 +771,27 @@ begin
                 begin
                     if(pixel3_n == 1'b0) //at pixel 3
                     begin
-                        if(FSM_SUSPEND == 1'b0) //keep going
+                        if(new_vblank_n == 1'b0)
                         begin
-                            if(hsize_parity == 1'b0) //zoomed horizontal size is even
-                            begin
-                                sprite_engine_state <= ATTR_LATCHING_S0;
-                            end
-                            else
-                            begin
-                                sprite_engine_state <= ODDSIZE_S0;
-                            end
+                            sprite_engine_state <= ATTR_LATCHING_S0; //new vblank
                         end
-                        else //if not, go suspend_s0
+                        else
                         begin
-                            sprite_engine_state <= SUSPEND_S0;
+                            if(FSM_SUSPEND == 1'b0) //keep going
+                            begin
+                                if(hsize_parity == 1'b0) //zoomed horizontal size is even
+                                begin
+                                    sprite_engine_state <= ATTR_LATCHING_S0;
+                                end
+                                else
+                                begin
+                                    sprite_engine_state <= ODDSIZE_S0;
+                                end
+                            end
+                            else //if not, go suspend_s0
+                            begin
+                                sprite_engine_state <= SUSPEND_S0;
+                            end
                         end
                     end
                     else //at pixel 0, 1, 2
@@ -799,27 +803,34 @@ begin
                 begin
                     if(pixel3_n == 1'b0) //at pixel 3
                     begin
-                        if(FSM_SUSPEND == 1'b0) //keep going
+                        if(new_vblank_n == 1'b0)
                         begin
-                            if(hsize_parity == 1'b0) //zoomed horizontal size is even
-                            begin
-                                if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
-                                begin
-                                    sprite_engine_state <= XOFF_S0;
-                                end
-                                else
-                                begin
-                                    sprite_engine_state <= HCOUNT_S0;
-                                end
-                            end
-                            else //zoomed horizontal size is odd
-                            begin
-                                sprite_engine_state <= ODDSIZE_S0;
-                            end
+                            sprite_engine_state <= ATTR_LATCHING_S0; //new vblank
                         end
-                        else //if not, go SUSPEND_S0
+                        else
                         begin
-                            sprite_engine_state <= SUSPEND_S0;
+                            if(FSM_SUSPEND == 1'b0) //keep going
+                            begin
+                                if(hsize_parity == 1'b0) //zoomed horizontal size is even
+                                begin
+                                    if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                                    begin
+                                        sprite_engine_state <= XOFF_S0;
+                                    end
+                                    else
+                                    begin
+                                        sprite_engine_state <= HCOUNT_S0;
+                                    end
+                                end
+                                else //zoomed horizontal size is odd
+                                begin
+                                    sprite_engine_state <= ODDSIZE_S0;
+                                end
+                            end
+                            else //if not, go SUSPEND_S0
+                            begin
+                                sprite_engine_state <= SUSPEND_S0;
+                            end
                         end
                     end
                     else //at pixel 0, 1, 2
@@ -831,13 +842,20 @@ begin
                 begin
                     if(pixel3_n == 1'b0) //at pixel 3
                     begin
-                        if(FSM_SUSPEND == 1'b0) //keep going
+                        if(new_vblank_n == 1'b0)
                         begin
-                            sprite_engine_state <= HCOUNT_S0;
+                            sprite_engine_state <= ATTR_LATCHING_S0; //new vblank
                         end
-                        else //if not, go suspend_s0
+                        else
                         begin
-                            sprite_engine_state <= SUSPEND_S0;
+                            if(FSM_SUSPEND == 1'b0) //keep going
+                            begin
+                                sprite_engine_state <= HCOUNT_S0;
+                            end
+                            else //if not, go suspend_s0
+                            begin
+                                sprite_engine_state <= SUSPEND_S0;
+                            end
                         end
                     end
                     else //at pixel 0, 1, 2
@@ -849,13 +867,20 @@ begin
                 begin
                     if(pixel3_n == 1'b0) //at pixel 3
                     begin
-                        if(FSM_SUSPEND == 1'b0) //keep going
+                        if(new_vblank_n == 1'b0)
                         begin
-                            sprite_engine_state <= HCOUNT_S0;
+                            sprite_engine_state <= ATTR_LATCHING_S0; //new vblank
                         end
-                        else //if not, go SUSPEND_S0
+                        else
                         begin
-                            sprite_engine_state <= SUSPEND_S0;
+                            if(FSM_SUSPEND == 1'b0) //keep going
+                            begin
+                                sprite_engine_state <= HCOUNT_S0;
+                            end
+                            else //if not, go SUSPEND_S0
+                            begin
+                                sprite_engine_state <= SUSPEND_S0;
+                            end
                         end
                     end
                     else //at pixel 0, 1, 2
@@ -870,45 +895,52 @@ begin
             HWAIT_S0:
                 if(pixel3_n == 1'b0) //exit condition: encounter px3
                 begin
-                    if(FSM_SUSPEND == 1'b0) //keep going, return to HCOUNT_S0 or fetch new attributes
+                    if(new_vblank_n == 1'b0)
                     begin
-                        if(drawing_status == END_OF_SPRITE)
-                        begin
-                            if(hsize_parity == 1'b0) //zoomed horizontal size is even
-                            begin
-                                sprite_engine_state <= ATTR_LATCHING_S0;
-                            end
-                            else //zoomed horizontal size is odd
-                            begin
-                                sprite_engine_state <= ODDSIZE_S0;
-                            end
-                        end
-                        else if(drawing_status == END_OF_HLINE)
-                        begin
-                            if(hsize_parity == 1'b0) //zoomed horizontal size is even
-                            begin
-                                if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
-                                begin
-                                    sprite_engine_state <= XOFF_S0;
-                                end
-                                else
-                                begin
-                                    sprite_engine_state <= HCOUNT_S0;
-                                end
-                            end
-                            else //zoomed horizontal size is odd
-                            begin
-                                sprite_engine_state <= ODDSIZE_S0;
-                            end
-                        end
-                        else
-                        begin
-                            sprite_engine_state <= HCOUNT_S0;
-                        end
+                        sprite_engine_state <= ATTR_LATCHING_S0; //new vblank
                     end
-                    else //if not, go suspend_s0
+                    else
                     begin
-                        sprite_engine_state <= SUSPEND_S0;
+                        if(FSM_SUSPEND == 1'b0) //keep going, return to HCOUNT_S0 or fetch new attributes
+                        begin
+                            if(drawing_status == END_OF_SPRITE)
+                            begin
+                                if(hsize_parity == 1'b0) //zoomed horizontal size is even
+                                begin
+                                    sprite_engine_state <= ATTR_LATCHING_S0;
+                                end
+                                else //zoomed horizontal size is odd
+                                begin
+                                    sprite_engine_state <= ODDSIZE_S0;
+                                end
+                            end
+                            else if(drawing_status == END_OF_HLINE)
+                            begin
+                                if(hsize_parity == 1'b0) //zoomed horizontal size is even
+                                begin
+                                    if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                                    begin
+                                        sprite_engine_state <= XOFF_S0;
+                                    end
+                                    else
+                                    begin
+                                        sprite_engine_state <= HCOUNT_S0;
+                                    end
+                                end
+                                else //zoomed horizontal size is odd
+                                begin
+                                    sprite_engine_state <= ODDSIZE_S0;
+                                end
+                            end
+                            else
+                            begin
+                                sprite_engine_state <= HCOUNT_S0;
+                            end
+                        end
+                        else //if not, go suspend_s0
+                        begin
+                            sprite_engine_state <= SUSPEND_S0;
+                        end
                     end
                 end
                 else
@@ -921,63 +953,19 @@ begin
             ODDSIZE_S0:
                 if(pixel3_n == 1'b0) //exit condition: encounter px3
                 begin
-                    if(FSM_SUSPEND == 1'b0) //keep going, return to HCOUNT_S0 or fetch new attributes
-                    begin
-                        if(drawing_status == END_OF_SPRITE)
-                        begin
-                            sprite_engine_state <= ATTR_LATCHING_S0;
-                        end
-                        else if(drawing_status == END_OF_HLINE)
-                        begin
-                            if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
-                            begin
-                                sprite_engine_state <= XOFF_S0;
-                            end
-                            else
-                            begin
-                                sprite_engine_state <= HCOUNT_S0;
-                            end
-                        end
-                        else
-                        begin
-                            sprite_engine_state <= HCOUNT_S0;
-                        end
-                    end
-                    else //if not, go suspend_s0. *But get new properties first*
-                    begin
-                        if(drawing_status == END_OF_SPRITE)
-                        begin
-                            sprite_engine_state <= ATTR_LATCHING_S0;
-                        end
-                        else
-                        begin
-                            sprite_engine_state <= SUSPEND_S0;
-                        end
-                    end
-                end
-                else
-                begin
-                    sprite_engine_state <= ODDSIZE_S0;
-                end
-
-
-            // SUSPEND STATE: WAITING FOR /PX3
-            SUSPEND_S0: begin
-                if(pixel3_n == 1'b0) //exit condition: encounter px3
-                begin
                     if(new_vblank_n == 1'b0)
                     begin
                         sprite_engine_state <= ATTR_LATCHING_S0; //new vblank
                     end
-                    else if(FSM_SUSPEND == 1'b0) //return to HCOUNT_S0  or fetch new attributes
+                    else
                     begin
-                        if(drawing_status == END_OF_SPRITE)
+                        if(FSM_SUSPEND == 1'b0) //keep going, return to HCOUNT_S0 or fetch new attributes
                         begin
-                            sprite_engine_state <= ATTR_LATCHING_S0;
-                        end
-                        else if(drawing_status == END_OF_HLINE)
-                        begin
-                            if(hsize_parity == 1'b0) //zoomed horizontal size is even
+                            if(drawing_status == END_OF_SPRITE)
+                            begin
+                                sprite_engine_state <= ATTR_LATCHING_S0;
+                            end
+                            else if(drawing_status == END_OF_HLINE)
                             begin
                                 if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
                                 begin
@@ -988,50 +976,114 @@ begin
                                     sprite_engine_state <= HCOUNT_S0;
                                 end
                             end
-                            else //zoomed horizontal size is odd
-                            begin
-                                sprite_engine_state <= ODDSIZE_S0;
-                            end
-                        end
-                        else
-                        begin
-                            sprite_engine_state <= HCOUNT_S0;
-                        end
-                    end
-                    else
-                    begin
-                        sprite_engine_state <= SUSPEND_S0;
-                    end
-                end
-            end
-
-            XOFF_S0: begin
-                if(pixel3_n == 1'b0) //exit condition: encounter px3
-                begin
-                    if(FSM_SUSPEND == 1'b0)
-                    begin
-                        if(drawing_status == END_OF_SPRITE)
-                        begin
-                            if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                            else
                             begin
                                 sprite_engine_state <= HCOUNT_S0;
                             end
-                            else
+                        end
+                        else //if not, go suspend_s0. *But get new properties first*
+                        begin
+                            if(drawing_status == END_OF_SPRITE)
                             begin
                                 sprite_engine_state <= ATTR_LATCHING_S0;
-                            end 
+                            end
+                            else
+                            begin
+                                sprite_engine_state <= SUSPEND_S0;
+                            end
                         end
-                        else
-                        begin
-                            sprite_engine_state <= HCOUNT_S0;
-                        end
+                    end
+                end
+                else
+                begin
+                    sprite_engine_state <= ODDSIZE_S0;
+                end
+
+            // TRUE DELAY FOR H CLIPPING
+            XOFF_S0:
+                if(pixel3_n == 1'b0) //exit condition: encounter px3
+                begin
+                    if(new_vblank_n == 1'b0)
+                    begin
+                        sprite_engine_state <= ATTR_LATCHING_S0; //new vblank
                     end
                     else
                     begin
-                        sprite_engine_state <= XOFF_S0;
+                        if(FSM_SUSPEND == 1'b0)
+                        begin
+                            if(drawing_status == END_OF_SPRITE)
+                            begin
+                                if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                                begin
+                                    sprite_engine_state <= HCOUNT_S0;
+                                end
+                                else
+                                begin
+                                    sprite_engine_state <= ATTR_LATCHING_S0;
+                                end 
+                            end
+                            else
+                            begin
+                                sprite_engine_state <= HCOUNT_S0;
+                            end
+                        end
+                        else
+                        begin
+                            sprite_engine_state <= XOFF_S0;
+                        end
                     end
                 end
-            end
+
+
+            // SUSPEND STATE: WAITING FOR /PX3
+            SUSPEND_S0:
+                if(pixel3_n == 1'b0) //exit condition: encounter px3
+                begin
+                    if(new_vblank_n == 1'b0)
+                    begin
+                        sprite_engine_state <= ATTR_LATCHING_S0; //new vblank
+                    end
+                    else
+                    begin
+                        if(FSM_SUSPEND == 1'b0) //return to HCOUNT_S0  or fetch new attributes
+                        begin
+                            if(drawing_status == END_OF_SPRITE)
+                            begin
+                                sprite_engine_state <= HCOUNT_S0;
+                            end
+                            else if(drawing_status == END_OF_HLINE)
+                            begin
+                                if(hsize_parity == 1'b0) //zoomed horizontal size is even
+                                begin
+                                    if(evenbuffer_xpos_d7 == 1'b1) //if END_OF_HLINE flag is triggered by the offscreen flag
+                                    begin
+                                        sprite_engine_state <= XOFF_S0;
+                                    end
+                                    else
+                                    begin
+                                        sprite_engine_state <= HCOUNT_S0;
+                                    end
+                                end
+                                else //zoomed horizontal size is odd
+                                begin
+                                    sprite_engine_state <= ODDSIZE_S0;
+                                end
+                            end
+                            else
+                            begin
+                                sprite_engine_state <= HCOUNT_S0;
+                            end
+                        end
+                        else
+                        begin
+                            sprite_engine_state <= SUSPEND_S0;
+                        end
+                    end
+                end
+
+            default:
+                sprite_engine_state <= SUSPEND_S0;
+            
         endcase
     end
 end
@@ -1818,23 +1870,28 @@ reg     [15:0]  ODDBUFFER_ADDR; //unmultiplexed, buffer B on the Nemesis schemat
 assign  o_FA = (o_CAS == 1'b0) ? EVENBUFFER_ADDR[7:0] : EVENBUFFER_ADDR[15:8]; //RAS : CAS
 assign  o_FB = (o_CAS == 1'b0) ?  ODDBUFFER_ADDR[7:0] :  ODDBUFFER_ADDR[15:8]; //RAS : CAS
 
+/*
+    SPRITE DOUBLE BUFFERING(VERIFIED)
+
+    GX400 GFX board uses sprite double buffering. This means the sprites
+    currently drawn in this VBLANK will not be displayed in the upcoming
+    active video period, but will be shown on a screen on the next frame.
+*/
+
 always @(*)
 begin
     case(i_OBJWR)
         1'b1: begin //sprite drawing period
-            EVENBUFFER_ADDR <= {buffer_frame_parity | __SAVE_FRAMEBUFFER_CAPACITY, 
-                                buffer_ypos_counter, evenbuffer_xpos_counter[6:0]};
-            ODDBUFFER_ADDR  <= {buffer_frame_parity | __SAVE_FRAMEBUFFER_CAPACITY, 
-                                buffer_ypos_counter, oddbuffer_xpos_counter[6:0]};
+            EVENBUFFER_ADDR <= {~buffer_frame_parity, buffer_ypos_counter, evenbuffer_xpos_counter[6:0]}; //sprite double buffering
+            ODDBUFFER_ADDR  <= {~buffer_frame_parity, buffer_ypos_counter, oddbuffer_xpos_counter[6:0]}; //sprite double buffering
         end
         1'b0: begin //active video period
-            EVENBUFFER_ADDR <= {buffer_frame_parity | __SAVE_FRAMEBUFFER_CAPACITY, 
-                                buffer_y_screencounter ^ {8{i_FLIP}}, buffer_x_screencounter ^ {7{i_FLIP}}};
-            ODDBUFFER_ADDR  <= {buffer_frame_parity | __SAVE_FRAMEBUFFER_CAPACITY, 
-                                buffer_y_screencounter ^ {8{i_FLIP}}, buffer_x_screencounter ^ {7{i_FLIP}}};
+            EVENBUFFER_ADDR <= {buffer_frame_parity, buffer_y_screencounter ^ {8{i_FLIP}}, buffer_x_screencounter ^ {7{i_FLIP}}};
+            ODDBUFFER_ADDR  <= {buffer_frame_parity, buffer_y_screencounter ^ {8{i_FLIP}}, buffer_x_screencounter ^ {7{i_FLIP}}};
         end
     endcase
 end
+
 
 
 
@@ -1880,7 +1937,7 @@ assign  o_CAS = i_OBJHL;
 reg debug;
 always @(*)
 begin
-    if(oddbuffer_xpos_counter == 8'd96 && buffer_ypos_counter == 8'd86)
+    if(oddbuffer_xpos_counter == 8'd108 && buffer_ypos_counter == 8'd46)
     begin
         debug <= 1'b1;
     end
