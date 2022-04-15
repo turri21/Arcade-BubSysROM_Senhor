@@ -478,7 +478,7 @@ begin
             evenbuffer_xpos_counter <= {LATCH_D[0], LATCH_E[7:1]} + LATCH_E[0];
             oddbuffer_xpos_counter <= {LATCH_D[0], LATCH_E[7:1]};
         end
-        else if(ypos_cnt_dly_n[3] == 1'b0)
+        else if(ypos_cnt_dly_n[2] == 1'b0)
         begin
             evenbuffer_xpos_counter <= {LATCH_D[0], LATCH_E[7:1]} + LATCH_E[0];
             oddbuffer_xpos_counter <= {LATCH_D[0], LATCH_E[7:1]};
@@ -1930,7 +1930,7 @@ assign  o_CAS = i_OBJHL;
 reg debug;
 always @(*)
 begin
-    if(oddbuffer_xpos_counter == 8'd108 && buffer_ypos_counter == 8'd46)
+    if(oddbuffer_xpos_counter == 8'd124 && buffer_ypos_counter == 8'd218)
     begin
         debug <= 1'b1;
     end
