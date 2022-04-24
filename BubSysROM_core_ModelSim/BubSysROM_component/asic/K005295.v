@@ -743,20 +743,27 @@ begin
             ATTR_LATCHING_S1:
                 if(pixel3_n == 1'b0) //exit condition: 1 pixel just after end of ORINC(negative logic)
                 begin
-                    if(LATCH_F_2H_NCLKD_en_n == 1'b0)
+                    if(new_vblank_n == 1'b0)
                     begin
-                        if(FSM_SUSPEND == 1'b0) //keep going
-                        begin
-                            sprite_engine_state <= HCOUNT_S0;
-                        end
-                        else //if not, go suspend_s0
-                        begin
-                            sprite_engine_state <= SUSPEND_S0;
-                        end
+                        sprite_engine_state <= ATTR_LATCHING_S0; //new vblank
                     end
                     else
                     begin
-                        sprite_engine_state <= ATTR_LATCHING_S1;
+                        if(LATCH_F_2H_NCLKD_en_n == 1'b0)
+                        begin
+                            if(FSM_SUSPEND == 1'b0) //keep going
+                            begin
+                                sprite_engine_state <= HCOUNT_S0;
+                            end
+                            else //if not, go suspend_s0
+                            begin
+                                sprite_engine_state <= SUSPEND_S0;
+                            end
+                        end
+                        else
+                        begin
+                            sprite_engine_state <= ATTR_LATCHING_S1;
+                        end
                     end
                 end
                 else
