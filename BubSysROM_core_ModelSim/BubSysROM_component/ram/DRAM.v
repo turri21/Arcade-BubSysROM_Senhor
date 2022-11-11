@@ -73,9 +73,9 @@ begin
     end
 end
 
-always @(posedge i_MCLK) //read
+always @(posedge i_MCLK) //read: latched output
 begin
-    if(i_RD_n == 1'b0)
+    if(i_RD_n == 1'b0 && i_WR_n == 1'b1)
     begin
         o_DOUT <= RAM[ADDR];
     end
