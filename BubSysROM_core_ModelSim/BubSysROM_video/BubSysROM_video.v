@@ -920,7 +920,7 @@ end
 wire            charcs1_n = i_CHACS_n | ABS_2H | i_CPU_ADDR[0];
 wire            charcs2_n = i_CHACS_n | ABS_2H | ~i_CPU_ADDR[0];
 wire            charram1_rw = charcs1_n | i_CPU_RW; //R=1 W=0
-wire            charram2_rw = charcs1_n | i_CPU_RW;
+wire            charram2_rw = charcs2_n | i_CPU_RW;
 
 wire            charram1_rd = ~charram1_rw; //disables output when reading
 wire            charram2_rd = ~charram2_rw; //disables output when reading
