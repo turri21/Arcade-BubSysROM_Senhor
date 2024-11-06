@@ -1,0 +1,414 @@
+D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_romrq.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_romrq.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jtframe_romrq
+
+Top level modules:
+	jtframe_romrq
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/filter/jt49_dcrm.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/filter/jt49_dcrm.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49_dcrm
+
+Top level modules:
+	jt49_dcrm
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/BubSysROM_emu.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/BubSysROM_emu.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module BubSysROM_emu
+
+Top level modules:
+	BubSysROM_emu
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_exp.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_exp.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49_exp
+
+Top level modules:
+	jt49_exp
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/vlm5030_gl/vlm5030_pack.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/vlm5030_gl/vlm5030_pack.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Compiling package vlm5030_pack
+-- Compiling package body vlm5030_pack
+-- Loading package vlm5030_pack
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_noise.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_noise.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49_noise
+
+Top level modules:
+	jt49_noise
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_cen.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_cen.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49_cen
+
+Top level modules:
+	jt49_cen
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_rom_2slots.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_rom_2slots.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jtframe_rom_2slots
+
+Top level modules:
+	jtframe_rom_2slots
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/fx68k/fx68kAlu.sv {1 {vlog -work work -sv -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/fx68k/fx68kAlu.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling package fx68kAlu_sv_unit
+-- Compiling module fx68kAlu
+-- Compiling module aluCorf
+-- Compiling module aluShifter
+-- Compiling module aluGetOp
+-- Compiling module rowDecoder
+-- Compiling module ccrTable
+
+Top level modules:
+	fx68kAlu
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/vlm5030_gl/vlm5030_gl.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/vlm5030_gl/vlm5030_gl.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling entity vlm5030_gl
+-- Loading package vlm5030_pack
+-- Compiling architecture gl of vlm5030_gl
+-- Loading entity vlm5030_srlatchclk
+-- Loading entity vlm5030_delay_inv
+-- Loading entity vlm5030_delay
+-- Loading entity vlm5030_srlatch
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80s.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80s.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling entity T80s
+-- Compiling architecture rtl of T80s
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_bus.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_bus.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49_bus
+
+Top level modules:
+	jt49_bus
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/GX400_video/GX400_video_sram.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/GX400_video/GX400_video_sram.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module GX400_video_sram
+
+Top level modules:
+	GX400_video_sram
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/BubSysROM_cpu.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/BubSysROM_cpu.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module BubSysROM_cpu
+
+Top level modules:
+	BubSysROM_cpu
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/GX400_video/K005292.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/GX400_video/K005292.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module K005292
+
+Top level modules:
+	K005292
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/filter/jt49_mave.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/filter/jt49_mave.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49_mave
+
+Top level modules:
+	jt49_mave
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling entity T80
+-- Compiling architecture rtl of T80
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/BubSysROM_top.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/BubSysROM_top.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module BubSysROM_top
+
+Top level modules:
+	BubSysROM_top
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80pa.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80pa.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling entity T80pa
+-- Compiling architecture rtl of T80pa
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/GX400_video/GX400_video.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/GX400_video/GX400_video.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module GX400_video
+-- Compiling module GX400_video_asynclatch
+
+Top level modules:
+	GX400_video
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/BubSysROM_components/BubSysROM_SRAM.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/BubSysROM_components/BubSysROM_SRAM.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module BubSysROM_SRAM
+
+Top level modules:
+	BubSysROM_SRAM
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_sdram64.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_sdram64.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jtframe_sdram64
+
+Top level modules:
+	jtframe_sdram64
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_div.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_div.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49_div
+
+Top level modules:
+	jt49_div
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_rom_sync.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_rom_sync.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jtframe_rom_sync
+
+Top level modules:
+	jtframe_rom_sync
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_sdram64_rfsh.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_sdram64_rfsh.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jtframe_sdram64_rfsh
+
+Top level modules:
+	jtframe_sdram64_rfsh
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_sdram64_bank.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_sdram64_bank.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jtframe_sdram64_bank
+
+Top level modules:
+	jtframe_sdram64_bank
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80_MCode.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80_MCode.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling entity T80_MCode
+-- Compiling architecture rtl of T80_MCode
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_ram1_1slot.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_ram1_1slot.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jtframe_ram1_1slot
+
+Top level modules:
+	jtframe_ram1_1slot
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/filter/jt49_dly.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/filter/jt49_dly.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49_dly
+
+Top level modules:
+	jt49_dly
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/GX400_video/K005293.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/GX400_video/K005293.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module K005293
+
+Top level modules:
+	K005293
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/GX400_video/GX400_video_dram.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/GX400_video/GX400_video_dram.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module GX400_video_dram
+
+Top level modules:
+	GX400_video_dram
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_sdram64_latch.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_sdram64_latch.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jtframe_sdram64_latch
+
+Top level modules:
+	jtframe_sdram64_latch
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/mt48lc16m16a2.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/mt48lc16m16a2.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module mt48lc16m16a2
+
+Top level modules:
+	mt48lc16m16a2
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80_ALU.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80_ALU.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling entity T80_ALU
+-- Compiling architecture rtl of T80_ALU
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/GX400_video/K005290.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/GX400_video/K005290.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module K005290
+
+Top level modules:
+	K005290
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/BubSysROM_ioctl_test.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/BubSysROM_ioctl_test.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module BubSysROM_ioctl_test
+
+Top level modules:
+	BubSysROM_ioctl_test
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/GX400_video/K005294.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/GX400_video/K005294.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module K005294
+
+Top level modules:
+	K005294
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/BubSysROM_tb.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/BubSysROM_tb.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module BubSysROM_tb
+
+Top level modules:
+	BubSysROM_tb
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/BubSysROM_components/BubSysROM_PROM.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/BubSysROM_components/BubSysROM_PROM.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module BubSysROM_PROM
+-- Compiling module BubSysROM_PROM_DC
+
+Top level modules:
+	BubSysROM_PROM
+	BubSysROM_PROM_DC
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/vlm5030_gl/vlm5030_subcircuits.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/vlm5030_gl/vlm5030_subcircuits.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Compiling entity vlm5030_srlatch
+-- Compiling architecture rtl of vlm5030_srlatch
+-- Loading package vlm5030_pack
+-- Compiling entity vlm5030_srlatchclk
+-- Compiling architecture rtl of vlm5030_srlatchclk
+-- Compiling entity vlm5030_delay
+-- Compiling architecture rtl of vlm5030_delay
+-- Compiling entity vlm5030_delay_inv
+-- Compiling architecture rtl of vlm5030_delay_inv
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/GX400_video/GX400_video_sim.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/GX400_video/GX400_video_sim.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module GX400_video_sim
+
+Top level modules:
+	GX400_video_sim
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/fx68k/uaddrPla.sv {1 {vlog -work work -sv -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/fx68k/uaddrPla.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module pla_lined
+
+Top level modules:
+	pla_lined
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/GX400_video/K005291.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/GX400_video/K005291.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module K005291
+
+Top level modules:
+	K005291
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/fx68k/fx68k.sv {1 {vlog -work work -sv -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/fx68k/fx68k.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling package fx68k_sv_unit
+-- Compiling module fx68k
+-- Compiling module nDecoder3
+-- Compiling module irdDecode
+-- Compiling module excUnit
+-- Compiling module dataIo
+-- Compiling module uaddrDecode
+-- Compiling module onehotEncoder4
+-- Compiling module pren
+-- Compiling module sequencer
+-- Compiling module busArbiter
+-- Compiling module busControl
+-- Compiling module uRom
+-- Compiling module nanoRom
+-- Compiling module microToNanoAddr
+
+Top level modules:
+	fx68k
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80_Reg.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/t80/T80_Reg.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling entity T80_Reg
+-- Compiling architecture rtl of T80_Reg
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_eg.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49_eg.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49_eg
+
+Top level modules:
+	jt49_eg
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/filter/jt49_dcrm2.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/filter/jt49_dcrm2.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49_dcrm2
+
+Top level modules:
+	jt49_dcrm2
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_sdram64_init.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_sdram64_init.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jtframe_sdram64_init
+
+Top level modules:
+	jtframe_sdram64_init
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_rom.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jtframe_sdram/jtframe_rom.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jtframe_rom
+
+Top level modules:
+	jtframe_rom
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/GX400_video/K005295.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/GX400_video/K005295.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module K005295
+
+Top level modules:
+	K005295
+
+} {} {}} D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49.v {1 {vlog -work work -stats=none D:/cores/ikacore_BubSysROM/sim/ipcores/jt49/jt49.v
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module jt49
+
+Top level modules:
+	jt49
+
+} {} {}}
