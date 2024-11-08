@@ -24,13 +24,16 @@ module BubSysROM_sound (
     input   wire            i_SND_DMA_LDS_n,
     input   wire            i_SND_DMA_SNDRAM_CS,
 
-    output  reg signed      [15:0]  o_SND_R, o_SND_L,
+    input   wire    [15:0]  i_VOL,
+    output  wire signed     [15:0]  o_SND_R, o_SND_L,
 
     input   wire            i_EMU_PROM_CLK,
     input   wire    [13:0]  i_EMU_PROM_ADDR,
     input   wire    [7:0]   i_EMU_PROM_DATA,
     input   wire            i_EMU_PROM_WR,
     
+    input   wire            i_EMU_PROM_WAVE1_CS,
+    input   wire            i_EMU_PROM_WAVE2_CS,
     input   wire            i_EMU_PROM_SNDROM_CS
 );
 
@@ -264,7 +267,7 @@ reg     [7:0]   vlm_param_latch; //LS373 transparent latch
 reg     [3:0]   vlm_ctrl_latch = 4'b0010; //{vlm_rst, vlm_start, /vlm_param_latch_oe, vlm_param_latch_en}
 
 always @(posedge mclk) begin
-    if(vlmctrl_wr && !sndbus_wr_n) vlm_ctrl_latch <= sndcpu_addr[6:3];
+    if(vlmctrl_wr && !sndbus_wr_n) vlm_ctrl_latch <= sndbus_addr[6:3];
 
     if(vlm_ctrl_latch[0]) vlm_param_latch <= sndbus_do;
 end
@@ -276,7 +279,7 @@ wire            vlm_busy;
 
 wire    [15:0]  vlm_addr;
 wire            vlm_me_n; //Memory Enable
-wire signed     [9:0]   vlm_snd;
+wire signed     [9:0]   vlm_sound;
 
 //VLM5030 command rom
 wire    [10:0]  voiceram_addr = voiceram_cs ? sndbus_addr[10:0] : vlm_addr[10:0];
@@ -286,13 +289,13 @@ BubSysROM_SRAM #(.AW(11), .DW(8), .simhexfile()) u_voiceram (
     .i_ADDR                     (voiceram_addr              ),
     .i_DIN                      (vlm_param_latch            ),
     .o_DOUT                     (voiceram_q                 ),
-    .i_WR                       (sndram_cs && !sndbus_wr_n  ),
-    .i_RD                       (!vlm_me_n                  )
+    .i_WR                       (voiceram_cs && !sndbus_wr_n),
+    .i_RD                       (1'b1                       )
 );
 
 
 //VLM5030 bus
-wire    [7:0]   vlm_di = vlm_ctrl_latch[1] ? voiceram_q : vlm_param_latch; //negative logic
+wire    [7:0]   vlm_di = vlm_me_n ? vlm_param_latch : voiceram_q; //negative logic
 
 //main chip
 vlm5030_gl u_vlm (
@@ -306,9 +309,8 @@ vlm5030_gl u_vlm (
     .o_a                        (vlm_addr                   ),
     .o_me_l                     (vlm_me_n                   ),
     .o_bsy                      (vlm_busy                   ),
-    .o_audio                    (vlm_snd                    )
+    .o_audio                    (vlm_sound                  )
 );
-
 
 
 
@@ -317,7 +319,8 @@ vlm5030_gl u_vlm (
 ////
 
 wire    [7:0]   psg1_q, psg2_q;
-wire    [7:0]   psg1_iob_out;
+wire    [7:0]   psg1_iob_out, psg2_ioa_out, psg2_iob_out;
+wire    [9:0]   psg1_sound, psg2_sound;
 assign  o_MAINCPU_RSTCTRL = ~psg1_iob_out[7];
 
 //MAME PSG1(4F on the board)
@@ -331,7 +334,7 @@ jt49_bus u_psg1 (
 
     .sel                        (1'b1                       ),
     .dout                       (psg1_q                     ),
-    .sound                      (                           ),
+    .sound                      (psg1_sound                 ),
     .A                          (                           ),
     .B                          (                           ),
     .C                          (                           ),
@@ -345,6 +348,150 @@ jt49_bus u_psg1 (
     .IOB_out                    (psg1_iob_out               ),
     .IOB_oe                     (                           )
 );
+
+//MAME PSG2(4H on the board)
+jt49_bus u_psg2 (
+    .rst_n                      (~sndcpu_rst                ),
+    .clk                        (mclk                       ),
+    .clk_en                     (clk1m79_pcen               ),
+    .bdir                       (psg2_cs & (~sndcpu_rd_n | ~sndcpu_wr_n) & ~sndbus_addr[9]),
+    .bc1                        (psg2_cs & (~sndcpu_rd_n | ~sndcpu_wr_n) & ~sndbus_addr[10]),
+    .din                        (sndbus_do                  ),
+
+    .sel                        (1'b1                       ),
+    .dout                       (psg2_q                     ),
+    .sound                      (psg2_sound                 ),
+    .A                          (                           ),
+    .B                          (                           ),
+    .C                          (                           ),
+    .sample                     (                           ),
+
+    .IOA_in                     (                           ),
+    .IOA_out                    (psg2_ioa_out               ),
+    .IOA_oe                     (                           ),
+
+    .IOB_in                     (                           ),
+    .IOB_out                    (psg2_iob_out               ),
+    .IOB_oe                     (                           )
+);
+
+
+
+///////////////////////////////////////////////////////////
+//////  K005289 WAVETABLE
+////
+
+wire    [4:0]   prom1_addr, prom2_addr;
+wire    [3:0]   prom1_q, prom2_q;
+wire    [7:0]   wave1_sound, wave2_sound;
+
+//wavetable address generator
+K005289 u_K005289(
+    .i_RST_n                    (~sndcpu_rst                ),
+    .i_CLK                      (mclk                       ),
+    .i_CEN                      (clk3m58_pcen               ),
+
+    .i_LD1                      (wave1_wr                   ),
+    .i_TG1                      (wave1_tg                   ),
+
+    .i_LD2                      (wave2_wr                   ),
+    .i_TG2                      (wave2_tg                   ),
+
+    .i_COUNTER                  (sndbus_addr[11:0]          ),
+
+    .o_Q1                       (prom1_addr                 ),
+    .o_Q2                       (prom2_addr                 )
+);
+
+//wavetable ROMs
+BubSysROM_PROM_DC #(.AW(8), .DW(4), .simhexfile()) u_waverom1 (
+    .i_PROG_CLK                 (i_EMU_PROM_CLK             ),
+    .i_PROG_ADDR                (i_EMU_PROM_ADDR[7:0]       ),
+    .i_PROG_DIN                 (i_EMU_PROM_DATA[3:0]       ),
+    .i_PROG_CS                  (i_EMU_PROM_WAVE1_CS        ),
+    .i_PROG_WR                  (i_EMU_PROM_WR              ),
+
+    .i_MCLK                     (i_EMU_MCLK                 ),
+    .i_ADDR                     ({psg2_ioa_out[7:5], prom1_addr}),
+    .o_DOUT                     (prom1_q                    ),
+    .i_RD                       (1'b1                       )
+);
+
+BubSysROM_PROM_DC #(.AW(8), .DW(4), .simhexfile()) u_waverom2 (
+    .i_PROG_CLK                 (i_EMU_PROM_CLK             ),
+    .i_PROG_ADDR                (i_EMU_PROM_ADDR[7:0]       ),
+    .i_PROG_DIN                 (i_EMU_PROM_DATA[3:0]       ),
+    .i_PROG_CS                  (i_EMU_PROM_WAVE2_CS        ),
+    .i_PROG_WR                  (i_EMU_PROM_WR              ),
+
+    .i_MCLK                     (i_EMU_MCLK                 ),
+    .i_ADDR                     ({psg2_iob_out[7:5], prom2_addr}),
+    .o_DOUT                     (prom2_q                    ),
+    .i_RD                       (1'b1                       )
+);
+
+//volume LUT, replaces 4066 switches
+BubSysROM_PROM #(.AW(8), .DW(8), .simhexfile("./rtl/ipcores/vollut.txt")) u_vollut1 (
+    .i_MCLK                     (i_EMU_MCLK                 ),
+
+    .i_PROG_ADDR                (                           ),
+    .i_PROG_DIN                 (                           ),
+    .i_PROG_CS                  (1'b1                       ),
+    .i_PROG_WR                  (                           ),
+
+    .i_ADDR                     ({psg2_ioa_out[3:0], prom1_q}),
+    .o_DOUT                     (wave1_sound                ),
+    .i_RD                       (1'b1                       )
+);
+
+BubSysROM_PROM #(.AW(8), .DW(8), .simhexfile("./rtl/ipcores/vollut.txt")) u_vollut2 (
+    .i_MCLK                     (i_EMU_MCLK                 ),
+
+    .i_PROG_ADDR                (                           ),
+    .i_PROG_DIN                 (                           ),
+    .i_PROG_CS                  (1'b1                       ),
+    .i_PROG_WR                  (                           ),
+
+    .i_ADDR                     ({psg2_iob_out[3:0], prom2_q}),
+    .o_DOUT                     (wave2_sound                ),
+    .i_RD                       (1'b1                       )
+);
+
+
+
+///////////////////////////////////////////////////////////
+//////  SOUND MIXER
+////
+
+/*
+    psg_sound = 10-bit unsigned
+    vlm_sound = 10-bit signed
+    wavex_sound = 8-bit(normally 7-bit) unsigned
+*/
+
+wire signed [9:0]   psg1_sound_ac, psg2_sound_ac;
+jt49_dcrm2 #(.sw(10)) psg1_accap (.clk(mclk), .cen(clk3m58_pcen), .rst(sndcpu_rst), .din(psg1_sound), .dout(psg1_sound_ac));
+jt49_dcrm2 #(.sw(10)) psg2_accap (.clk(mclk), .cen(clk3m58_pcen), .rst(sndcpu_rst), .din(psg2_sound), .dout(psg2_sound_ac));
+
+wire signed [7:0]   wave1_sound_ac, wave2_sound_ac;
+jt49_dcrm2 #(.sw(8)) wave1_accap (.clk(mclk), .cen(clk3m58_pcen), .rst(sndcpu_rst), .din(wave1_sound), .dout(wave1_sound_ac));
+jt49_dcrm2 #(.sw(8)) wave2_accap (.clk(mclk), .cen(clk3m58_pcen), .rst(sndcpu_rst), .din(wave2_sound), .dout(wave2_sound_ac));
+
+reg signed  [13:0]  psg1_sound_vol, psg2_sound_vol;
+reg signed  [13:0]  vlm_sound_vol;
+reg signed  [13:0]  wave1_sound_vol, wave2_sound_vol;
+reg signed  [15:0]  final_sound;
+assign  o_SND_L = final_sound;
+assign  o_SND_R = final_sound;
+
+always @(posedge mclk) begin
+    psg1_sound_vol  <= psg1_sound_ac  * (6'sd8  + $signed(i_VOL[11:8]));
+    psg2_sound_vol  <= psg2_sound_ac  * (6'sd12 + $signed(i_VOL[15:12]));
+    vlm_sound_vol   <= vlm_sound      * (6'sd10 + $signed(i_VOL[7:4]));
+    wave1_sound_vol <= wave1_sound_ac * (6'sd8  + $signed(i_VOL[3:0]));
+    wave2_sound_vol <= wave2_sound_ac * (6'sd8  + $signed(i_VOL[3:0]));
+    final_sound <= (psg1_sound_vol + psg2_sound_vol + vlm_sound_vol + wave1_sound_vol + wave2_sound_vol) * 3'sd2;
+end
 
 
 
@@ -361,6 +508,7 @@ always @(*) begin
     else if(sndram_cs) sndbus_di = sndram_q;
     else if(sndcode_rd) sndbus_di = i_SND_CODE;
     else if(psg1_cs) sndbus_di = psg1_q;
+    else if(psg2_cs) sndbus_di = psg2_q;
 end
 
 

@@ -17,6 +17,7 @@ module BubSysROM_top (
     output  wire    [4:0]   o_VIDEO_B,
 
     //sound
+    input   wire    [15:0]  i_VOL,
     output  wire signed      [15:0]  o_SND_L,
     output  wire signed      [15:0]  o_SND_R,
 
@@ -37,6 +38,8 @@ module BubSysROM_top (
     input   wire    [7:0]   i_EMU_PROM_DATA,
     input   wire            i_EMU_PROM_WR,
     
+    input   wire            i_EMU_PROM_WAVE1_CS,
+    input   wire            i_EMU_PROM_WAVE2_CS,
     input   wire            i_EMU_PROM_SNDROM_CS
 );
 
@@ -321,6 +324,7 @@ BubSysROM_sound u_sound (
     .i_SND_DMA_LDS_n            (snd_dma_lds_n              ),
     .i_SND_DMA_SNDRAM_CS        (snd_dma_sndram_cs          ),
 
+    .i_VOL                      (i_VOL                      ),
     .o_SND_L                    (o_SND_L                    ),
     .o_SND_R                    (o_SND_R                    ),
 
@@ -329,6 +333,8 @@ BubSysROM_sound u_sound (
     .i_EMU_PROM_DATA            (i_EMU_PROM_DATA            ),
     .i_EMU_PROM_WR              (i_EMU_PROM_WR              ),
     
+    .i_EMU_PROM_WAVE1_CS        (i_EMU_PROM_WAVE1_CS        ),
+    .i_EMU_PROM_WAVE2_CS        (i_EMU_PROM_WAVE2_CS        ),
     .i_EMU_PROM_SNDROM_CS       (i_EMU_PROM_SNDROM_CS       )
 );
 

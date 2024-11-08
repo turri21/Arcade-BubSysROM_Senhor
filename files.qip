@@ -8,6 +8,7 @@ set_global_assignment -name VERILOG_FILE rtl/BubSysROM_cpu.v
 set_global_assignment -name VERILOG_FILE rtl/BubSysROM_sound.v
 set_global_assignment -name VERILOG_FILE rtl/BubSysROM_components/BubSysROM_PROM.v
 set_global_assignment -name VERILOG_FILE rtl/BubSysROM_components/BubSysROM_SRAM.v
+set_global_assignment -name VERILOG_FILE rtl/ipcores/k5289.v
 set_global_assignment -name QIP_FILE rtl/GX400_video/GX400_video.qip
 set_global_assignment -name QIP_FILE rtl/ipcores/fx68k/fx68k.qip
 set_global_assignment -name QIP_FILE rtl/ipcores/t80/T80.qip

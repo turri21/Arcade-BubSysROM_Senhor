@@ -213,7 +213,7 @@ pll pll(
 // 0         1         2         3          4         5         6   
 // 01234567890123456789012345678901 23456789012345678901234567890123
 // 0123456789ABCDEFGHIJKLMNOPQRSTUV 0123456789ABCDEFGHIJKLMNOPQRSTUV
-// X XXXXXXX X
+// X XXXXXXX X XXXXXXXXXXXXXXXX
 
 wire    [127:0] status; //status bits
 
@@ -224,13 +224,17 @@ localparam CONF_STR = {
     "P1,Scaler Settings;",
     "P1-;",
     "P1O23,Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
-    "h0P1O4,Orientation,Horizontal,Vertial;",
+    "h0P1O4,Orientation,Horizontal,Vertical;",
     "P1O5,VGA Scaler,off,on;",
     "P1O68,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
     "-;",
     "P2,Game Settings;",
     "P2-;",
     "P2OA,Gamma,original,user;",
+    "P2OCF,K5289 volume,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;",
+    "P2OGJ,VLM volume,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;",
+    "P2OKN,PSG1 volume,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;",
+    "P2OOR,PSG2 volume,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;",
     "-;",
     "DIP;",
     "-;",
@@ -326,6 +330,7 @@ BubSysROM_emu gameboard_top (
     .o_VIDEO_G                  (video_g_5bpp               ),
     .o_VIDEO_B                  (video_b_5bpp               ),
 
+    .i_VOL                      (status[27:12]              ),
     .o_SND_L                    (AUDIO_L                    ),
     .o_SND_R                    (AUDIO_R                    ),
 

@@ -17,6 +17,7 @@ module BubSysROM_emu (
     output  wire    [4:0]   o_VIDEO_G,
     output  wire    [4:0]   o_VIDEO_B,
 
+    input   wire    [15:0]  i_VOL,
     output  wire signed      [15:0]  o_SND_L,
     output  wire signed      [15:0]  o_SND_R,
 
@@ -58,8 +59,8 @@ module BubSysROM_emu (
 //0x0004_0000   0x0000_8000   15l          400-a06      27C256        BANK0        bootloader(hi, mask=01)
 //0x0004_8000   0x0000_8000   10l          400-a04      27C256        BANK0        bootloader(lo, mask=10)
 //0x0005_0000   0x0000_2000   5l           400-e03      27C64         BRAM         sound program(bootloader/base)
-//0x0005_2000   0x0000_0100   2a           400-a01      82S129        BRAM         wavetable
-//0x0005_2100   0x0000_0100   1a           400-a02      82S129        BRAM         wavetable
+//0x0005_2000   0x0000_0100   2j           400-a01      82S129        BRAM         wavetable
+//0x0005_2100   0x0000_0100   3j           400-a02      82S129        BRAM         wavetable
 //0x0005_2200          <-----------------ROM END----------------->
 
 //dipsw bank
@@ -331,35 +332,6 @@ jtframe_rom_2slots #(
 ////
 
 /*
-    1: SW OFF
-    0: SW ON
-
-    DIPSW1
-        76543210
-            ||||
-            ^^^^-- Coinage          /1111=1C1P 1110=1C2P 1101=1C3P 1100=1C4P 
-                                    /1011=1C5P 1010=1C6P 1001=1C7P 1000=2C1P    
-                                    /0111=2C3P 0110=2C5P 0101=3C1P 0100=3C2P
-                                    /0011=3C4P 0010=4C1P 0001=4C3P 0000=Disabled(?)
-          
-    DIPSW2
-        76543210
-        ||||||||
-        ||||||^^-- Lives            /11=2 10=3 01=5 00=7
-        |||||^---- Coin slots       /1=1 0=2
-        |||^^----- Max credits      /11=1 10=3 01=5 00=9
-        |^^------- Difficulty       /11=easy 10=normal 01=hard 00=hardest
-        ^--------- Demo sound       /1=off 0=on
-
-    DIPSW3
-            3210
-            || |
-            || ^-- Flip             /1=normal 0=flip
-            |^---- Test mode        /1=normal 0=service
-            ^----- Cabinet          /1=upright 0=cocktail
-*/
-
-/*
     MiSTer joystick(SNES)
     bit   
     0   right
@@ -429,6 +401,7 @@ BubSysROM_top gameboard_top (
     .o_VIDEO_G                  (o_VIDEO_G                  ),
     .o_VIDEO_B                  (o_VIDEO_B                  ),
 
+    .i_VOL                      (i_VOL                      ),
     .o_SND_L                    (o_SND_L                    ),
     .o_SND_R                    (o_SND_R                    ),
 
@@ -452,6 +425,8 @@ BubSysROM_top gameboard_top (
     .i_EMU_PROM_DATA            (prog_bram_din_buf          ),
     .i_EMU_PROM_WR              (prog_bram_wr               ),
     
+    .i_EMU_PROM_WAVE1_CS        (prog_bram_wave1_cs         ),
+    .i_EMU_PROM_WAVE2_CS        (prog_bram_wave2_cs         ),
     .i_EMU_PROM_SNDROM_CS       (prog_bram_sndrom_cs        )
 );
 
