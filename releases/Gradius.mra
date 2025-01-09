@@ -1,5 +1,5 @@
 <misterromdescription>
-    <name>Gradius</name>
+    <name>Gradius (Japan, ROM version)</name>
     <mameversion>0266</mameversion>
     <setname>gradius</setname>
     <mratimestamp>20241106</mratimestamp>
@@ -31,7 +31,7 @@
         <dip bits="18"          name="Service mode" ids="on,off"/>
     </switches>
 
-    <rom index='0' md5="None" type='nonmerged' zip='gradius.zip'>
+    <rom index='0' md5="None" type='nonmerged' zip='nemesis.zip|gradius.zip'>
         <!-- game program hi    0x000000-0x01ffff -->
         <part crc="92df792c" name="456-a07.17l"/>
         <!-- game program lo    0x020000-0x03ffff -->
